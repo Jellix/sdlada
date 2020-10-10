@@ -41,11 +41,47 @@ procedure Pong_Demo is
       Renderer.Set_Draw_Colour (Colour => GC.Background_Color);
       Renderer.Clear;
 
+      --  Draw goal lines left and right.
       Renderer.Set_Draw_Colour (Colour => GC.Line_Colour);
-      Renderer.Draw (Line => ((Left_Goal, 0),
-                              (Left_Goal, GC.Screen_Height - 1)));
-      Renderer.Draw (Line => ((Right_Goal, 0),
-                              (Right_Goal, GC.Screen_Height - 1)));
+      Renderer.Draw
+        (Line =>
+           SDL.Video.Rectangles.Line_Segment'
+             (Start  => SDL.Coordinates'(X => Left_Goal,
+                                         Y => 0),
+              Finish => SDL.Coordinates'(X => Left_Goal,
+                                         Y => GC.Screen_Height - 1)));
+      Renderer.Draw
+        (Line =>
+           SDL.Video.Rectangles.Line_Segment'
+             (Start  => SDL.Coordinates'(X => Right_Goal,
+                                         Y => 0),
+              Finish => SDL.Coordinates'(X => Right_Goal,
+                                         Y => GC.Screen_Height - 1)));
+
+      --  Draw middle lines.
+      Renderer.Draw
+        (Line =>
+           SDL.Video.Rectangles.Line_Segment'
+             (Start  => SDL.Coordinates'(X => GC.Screen_Width / 2,
+                                         Y => 0),
+              Finish => SDL.Coordinates'(X => GC.Screen_Width / 2,
+                                         Y => GC.Screen_Height - 1)));
+      Renderer.Draw
+        (Line =>
+           SDL.Video.Rectangles.Line_Segment'
+             (Start  => SDL.Coordinates'(X => Left_Goal,
+                                         Y => GC.Screen_Height / 2),
+              Finish => SDL.Coordinates'(X => Right_Goal,
+                                         Y => GC.Screen_Height / 2)));
+
+      --  Draw start "circle".
+      Renderer.Draw
+        (Rectangle =>
+           SDL.Video.Rectangles.Rectangle'
+             (X      => GC.Screen_Width / 2 - GC.Ball_Size,
+              Y      => GC.Screen_Height / 2 - GC.Ball_Size,
+              Width  => GC.Ball_Size * 2,
+              Height => GC.Ball_Size * 2));
 
       --  Update paddle and ball positions.
       Draw_Objects :
