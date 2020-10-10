@@ -21,7 +21,8 @@ with Game.Audio,
 use type Ada.Real_Time.Time;
 
 use type SDL.Dimension,
-         SDL.Init_Flags;
+         SDL.Init_Flags,
+         SDL.Video.Renderers.Renderer_Flags;
 
 procedure Pong_Demo is
 
@@ -77,10 +78,11 @@ procedure Pong_Demo is
 
    Stop_Ball_Until    : Ada.Real_Time.Time := Ada.Real_Time.Clock;
    Collision_Detected : Boolean := False;
+
+   Required_SDL_Subsystems : constant SDL.Init_Flags :=
+     SDL.Enable_Audio or SDL.Enable_Events or SDL.Enable_Screen;
 begin
-   if
-     not SDL.Initialise (Flags => (SDL.Enable_Screen or SDL.Enable_Audio))
-   then
+   if not SDL.Initialise (Flags => Required_SDL_Subsystems) then
       Ada.Text_IO.Put_Line (File => Ada.Text_IO.Standard_Error,
                             Item => "Could not initialize SDL!");
       raise SDL_Error with SDL.Error.Get;
@@ -106,7 +108,9 @@ begin
    SDL.Video.Renderers.Makers.Create
      (Rend   => Game_Renderer,
       Window => Game_Window,
-      Flags  => SDL.Video.Renderers.Present_V_Sync);
+      Flags  =>
+        SDL.Video.Renderers.Present_V_Sync or
+        SDL.Video.Renderers.Accelerated);
    Game_Renderer.Set_Logical_Size
      (Size => SDL.Sizes'(Width  => GC.Screen_Width,
                          Height => GC.Screen_Height));
@@ -303,8 +307,6 @@ begin
       Next_Time := Next_Time + GC.Game_Speed;
 
    end loop Game_Loop;
-
-   SDL.Finalise_Sub_System (Flags => (SDL.Enable_Screen or SDL.Enable_Audio));
 
    Game.Audio.Finalize;
 
