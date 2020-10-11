@@ -66,8 +66,8 @@ package SDL.Audio is
 
    --  FIXME: As like other stuff this should be hidden in an controlled object
    --         and callbacks should be implemented via generics.
-   type Audio_Buffer  is new System.Address; --  C allocated buffer, see Load_WAV
-   type User_Data_Ptr is new System.Address; --  Variable type.
+   subtype Audio_Buffer  is System.Address; --  C allocated buffer, see Load_WAV
+   subtype User_Data_Ptr is System.Address; --  Variable type.
 
    type Format_Id is new Interfaces.Unsigned_16;
    --  Format_Id is technically a bit-record with the following meaning for
