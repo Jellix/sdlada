@@ -105,7 +105,7 @@ package body SDL.Audio is
    ---------------------------------------------------------------------
    --  C_Open_Device
    ---------------------------------------------------------------------
-   function C_Open_Device (Device          : in Interfaces.C.char_array;
+   function C_Open_Device (Device          : in Interfaces.C.Strings.chars_ptr;
                            Is_Capture      : in Bool;
                            Desired         : in System.Address;
                            Obtained        : in System.Address;
@@ -152,14 +152,19 @@ package body SDL.Audio is
                    Obtained        :    out Audio_Spec;
                    Allowed_Changes : in     Allowed_Changes_Flags;
                    Device          :    out Device_Id) is
+      C_Device_Name : Interfaces.C.Strings.chars_ptr :=
+        (if Device_Name = ""
+         then Interfaces.C.Strings.Null_Ptr
+         else Interfaces.C.Strings.New_String (Device_Name));
    begin
       Device :=
         C_Open_Device
-          (Device          => Interfaces.C.To_C (Device_Name),
+          (Device          => C_Device_Name,
            Is_Capture      => Is_Capture,
            Desired         => Desired'Address,
            Obtained        => Obtained'Address,
            Allowed_Changes => Allowed_Changes);
+      Interfaces.C.Strings.Free (C_Device_Name);
    end Open;
 
    ---------------------------------------------------------------------
@@ -169,14 +174,19 @@ package body SDL.Audio is
                    Is_Capture  : in     Bool   := False;
                    Required    : in out Audio_Spec;
                    Device      :    out Device_Id) is
+      C_Device_Name : Interfaces.C.Strings.chars_ptr :=
+        (if Device_Name = ""
+         then Interfaces.C.Strings.Null_Ptr
+         else Interfaces.C.Strings.New_String (Device_Name));
    begin
       Device :=
         C_Open_Device
-          (Device          => Interfaces.C.To_C (Device_Name),
+          (Device          => C_Device_Name,
            Is_Capture      => Is_Capture,
            Desired         => Required'Address,
            Obtained        => System.Null_Address,
            Allowed_Changes => 0);
+      Interfaces.C.Strings.Free (C_Device_Name);
    end Open;
 
    ---------------------------------------------------------------------
