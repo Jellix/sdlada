@@ -48,6 +48,8 @@ package body Game.Audio is
    --  Which is currently playing.
    Currently_Playing : Play_Info;
 
+   Audio_Device : SDL.Audio.Device_Id;
+
    ---------------------------------------------------------------------
    --  Load_Data
    ---------------------------------------------------------------------
@@ -127,7 +129,7 @@ package body Game.Audio is
       if
         Cur_Play.Data /= SDL.Audio.Null_Audio
       then
-         --  Now fill buffer with audio data and update tbe audio index.
+         --  Now fill buffer with audio data and update the audio index.
          Last_Byte := Byte_Index'Min (Byte_Index (Cur_Play.Length - Cur_Play.Data_Index),
                                       Out_Buf'Length);
 
@@ -153,7 +155,8 @@ package body Game.Audio is
    ---------------------------------------------------------------------
    procedure Initialize is
       Required : SDL.Audio.Audio_Spec;
-      Success  : Boolean;
+      use type SDL.Audio.Device_Id,
+               SDL.Audio.Device_Index;
    begin
       Currently_Playing := Nothing;
 
@@ -169,15 +172,24 @@ package body Game.Audio is
                               Callback  => Callback'Access,
                               User_Data => SDL.Audio.User_Data_Ptr (Currently_Playing'Address));
 
+      --  SDL2 API. Enumerate and report devices.
+      for D in 0 .. SDL.Audio.Get_Num_Devices - 1 loop
+         Ada.Text_IO.Put_Line
+           ("Audio device """ &
+              SDL.Audio.Device_Name (Index      => D,
+                                     Is_Capture => SDL.Audio.False) & """ found.");
+      end loop;
+
       SDL.Audio.Open (Required => Required,
-                      Success  => Success);
+                      Device   => Audio_Device);
       pragma Unreferenced (Required);
 
-      if not Success then
+      if Audio_Device = 0 then
          Ada.Text_IO.Put_Line (File => Ada.Text_IO.Standard_Error,
                                Item => "Failed to initialize audio");
       else
-         SDL.Audio.Pause (Pause_On => SDL.Audio.False);
+         SDL.Audio.Pause (Device   => Audio_Device,
+                          Pause_On => SDL.Audio.False);
       end if;
    end Initialize;
 
@@ -187,7 +199,7 @@ package body Game.Audio is
    procedure Finalize is
    begin
       SDL.Audio.Pause (Pause_On => SDL.Audio.True);
-      SDL.Audio.Close;
+      SDL.Audio.Close (Device => Audio_Device);
 
       SDL.Audio.Free_WAV (Audio_Buf => WAV_Ping.Buffer);
       SDL.Audio.Free_WAV (Audio_Buf => WAV_Pong.Buffer);
@@ -199,7 +211,7 @@ package body Game.Audio is
    procedure Play_Ping is
       use type SDL.Audio.Audio_Buffer;
    begin
-      SDL.Audio.Lock;
+      SDL.Audio.Lock (Device => Audio_Device);
 
       --  Only write new buffer if previous one has played already.
       if
@@ -211,7 +223,7 @@ package body Game.Audio is
                       Data_Index => 0);
       end if;
 
-      SDL.Audio.Unlock;
+      SDL.Audio.Unlock (Device => Audio_Device);
    end Play_Ping;
 
    ---------------------------------------------------------------------
@@ -220,7 +232,7 @@ package body Game.Audio is
    procedure Play_Pong is
       use type SDL.Audio.Audio_Buffer;
    begin
-      SDL.Audio.Lock;
+      SDL.Audio.Lock (Device => Audio_Device);
 
       --  Only write new buffer if previous one has played already.
       if
@@ -232,7 +244,7 @@ package body Game.Audio is
                       Data_Index => 0);
       end if;
 
-      SDL.Audio.Unlock;
+      SDL.Audio.Unlock (Device => Audio_Device);
    end Play_Pong;
 
 end Game.Audio;
