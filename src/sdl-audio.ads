@@ -638,7 +638,7 @@ package SDL.Audio is
    --  The string returned by this function is UTF-8 encoded.
    ---------------------------------------------------------------------
    function Device_Name (Index      : in Device_Index;
-                         Is_Capture : in Bool) return String;
+                         Is_Capture : in Bool := False) return String;
 
    ---------------------------------------------------------------------
    --  Get_Driver

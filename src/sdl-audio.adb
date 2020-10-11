@@ -193,7 +193,7 @@ package body SDL.Audio is
    --  Device_Name
    ---------------------------------------------------------------------
    function Device_Name (Index      : in Device_Index;
-                         Is_Capture : in Bool) return String is
+                         Is_Capture : in Bool := False) return String is
       function C_Device_Name (Index      : in Device_Index;
                               Is_Capture : in Bool) return Interfaces.C.Strings.chars_ptr;
       pragma Import (Convention    => C,
