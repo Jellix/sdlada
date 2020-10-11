@@ -47,8 +47,8 @@ private
 
    type Paddle is new Pong.Display_Object with
       record
-         Max_Speed : Float;
-         Velocity  : Pong.Paddles.Velocity;
+         Speed    : Float;
+         Velocity : Pong.Paddles.Velocity;
       end record;
 
 end Pong.Paddles;

@@ -23,7 +23,7 @@ package body Pong.Paddles is
                                       Max => (X => Float (Bounds.X + Bounds.Width - Initial.Width),
                                               Y => Float (Bounds.Y + Bounds.Height - Initial.Height))),
                      Colour    => Colour,
-                     Max_Speed => Speed,
+                     Speed     => Speed,
                      Velocity  => 0.0);
    end Create;
 
@@ -44,7 +44,7 @@ package body Pong.Paddles is
    procedure Move (This    : in out Paddle;
                    Clipped :    out Boolean) is
    begin
-      This.New_Pos.Y := This.Old_Pos.Y + This.Velocity * This.Max_Speed;
+      This.New_Pos.Y := This.Old_Pos.Y + This.Velocity * This.Speed;
 
       if This.New_Pos.Y > This.Bounds.Max.Y then
          Clipped := True;
