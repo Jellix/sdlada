@@ -346,7 +346,10 @@ package SDL.Audio is
    --
    --  Silence will be written to the audio device during the pause.
    ---------------------------------------------------------------------
-   procedure Pause (Pause_On : in Bool);
+   procedure Pause (Pause_On : in Bool) with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_PauseAudio";
    pragma Obsolescent (Entity  => Pause,
                        Message => "Consider using SDL.Audio.Pause (Device => ...) instead.");
 
@@ -378,14 +381,20 @@ package SDL.Audio is
    --  use SDL.Audio.Lock_Device.
    ---------------------------------------------------------------------
    procedure Pause (Device   : in Device_Id;
-                    Pause_On : in Bool);
+                    Pause_On : in Bool) with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_PauseAudioDevice";
 
    ---------------------------------------------------------------------
    --  Get_Status
    --
    --  Gets the current audio state.
    ---------------------------------------------------------------------
-   function Get_Status return Status;
+   function Get_Status return Status with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_GetAudioStatus";
    pragma Obsolescent (Entity  => Get_Status,
                        Message => "Consider using SDL.Audio.Get_Status (Device => ...) instead.");
 
@@ -447,7 +456,10 @@ package SDL.Audio is
    procedure Mix (Destination : in Audio_Buffer;
                   Source      : in Audio_Buffer;
                   Length      : in Interfaces.Unsigned_32;
-                  Vol         : in Volume);
+                  Vol         : in Volume) with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_MixAudio";
 
    ---------------------------------------------------------------------
    --  Lock
@@ -459,7 +471,10 @@ package SDL.Audio is
    --  the callback function is not running. Do not call these from the
    --  callback function or you will cause deadlock.
    ---------------------------------------------------------------------
-   procedure Lock;
+   procedure Lock with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_LockAudio";
    pragma Obsolescent (Entity  => Lock,
                        Message => "Consider using SDL.Audio.Lock (Device => ...) instead.");
 
@@ -499,14 +514,20 @@ package SDL.Audio is
    --  two threads at once, not only will you block the audio callback,
    --  you'll block the other thread.
    ---------------------------------------------------------------------
-   procedure Lock (Device : in Device_Id);
+   procedure Lock (Device : in Device_Id) with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_LockAudioDevice";
 
    ---------------------------------------------------------------------
    --  Unlock
    --
    --  Unlocks the callback function locked by a previous Lock call.
    ---------------------------------------------------------------------
-   procedure Unlock;
+   procedure Unlock with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_UnlockAudio";
    pragma Obsolescent (Entity  => Unlock,
                        Message => "Consider using SDL.Audio.Unlock (Device => ...) instead.");
 
@@ -515,14 +536,20 @@ package SDL.Audio is
    --
    --  Unlocks the callback function locked by a previous Lock call.
    ---------------------------------------------------------------------
-   procedure Unlock (Device : in Device_Id);
+   procedure Unlock (Device : in Device_Id) with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_UnlockAudioDevice";
 
    ---------------------------------------------------------------------
    --  Close
    --
    --  Shuts down audio processing and closes the audio device.
    ---------------------------------------------------------------------
-   procedure Close;
+   procedure Close with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_CloseAudio";
    pragma Obsolescent (Entity  => Close,
                        Message => "Consider using SDL.Audio.Close (Device => ) instead.");
 
@@ -540,7 +567,10 @@ package SDL.Audio is
    --  The device ID is invalid as soon as the device is closed, and is
    --  eligible for reuse in a new Open_Device call immediately.
    ---------------------------------------------------------------------
-   procedure Close (Device : in Device_Id);
+   procedure Close (Device : in Device_Id) with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_CloseAudioDevice";
 
    ---------------------------------------------------------------------
    --  Clear_Queued
@@ -565,7 +595,10 @@ package SDL.Audio is
    --  You should not call SDL.Audio.Lock on the device before clearing
    --  the queue; SDL handles locking internally for this function.
    ---------------------------------------------------------------------
-   procedure Clear_Queued (Device : in Device_Id);
+   procedure Clear_Queued (Device : in Device_Id) with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_ClearQueuedAudio";
 
    ---------------------------------------------------------------------
    --  Get_Queued_Size
@@ -592,8 +625,10 @@ package SDL.Audio is
    --  You should not call SDL.Audio.Lock on the device before
    --  querying; SDL handles locking internally for this function.
    ---------------------------------------------------------------------
-   function Get_Queued_Size (Device : in Device_Id) return Interfaces.Unsigned_32;
-
+   function Get_Queued_Size (Device : in Device_Id) return Interfaces.Unsigned_32 with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_GetQueuedAudioSize";
 
    ---------------------------------------------------------------------
    --  Queue
@@ -628,7 +663,10 @@ package SDL.Audio is
    ---------------------------------------------------------------------
    procedure Queue (Device : in Device_Id;
                     Data   : in Audio_Buffer;
-                    Lenght : in Interfaces.Unsigned_32);
+                    Lenght : in Interfaces.Unsigned_32) with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_QueueAudio";
 
    ---------------------------------------------------------------------
    --  Device_Name
@@ -681,7 +719,10 @@ package SDL.Audio is
    --  Asking for the state on an unopened or unknown device ID will
    --  report STOPPED.
    ---------------------------------------------------------------------
-   function Get_Status (Device : in Device_Id) return Status;
+   function Get_Status (Device : in Device_Id) return Status with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_GetAudioDeviceStatus";
 
    ---------------------------------------------------------------------
    --  Get_Num_Devices
@@ -712,7 +753,10 @@ package SDL.Audio is
    --  hardware. It should not be called for each iteration of a loop,
    --  but rather once at the start of a loop.
    ---------------------------------------------------------------------
-   function Get_Num_Devices (Is_Capture : Bool := False) return Device_Index;
+   function Get_Num_Devices (Is_Capture : Bool := False) return Device_Index with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_GetNumAudioDevices";
 
    ---------------------------------------------------------------------
    --  Get_Num_Drivers
@@ -732,7 +776,10 @@ package SDL.Audio is
    --  By default, SDL tries all drivers, in its preferred order, until
    --  one is found to be usable.
    ---------------------------------------------------------------------
-   function Get_Num_Drivers return Driver_Index;
+   function Get_Num_Drivers return Driver_Index with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_GetNumAudioDrivers";
 
    ---------------------------------------------------------------------
    --  Open_Device
@@ -843,92 +890,6 @@ package SDL.Audio is
                    Device      :    out Device_Id);
 
 private
-
-   --  Untangle overloaded function names.
-   procedure Close_Legacy renames Close;
-   pragma Import (Convention    => C,
-                  Entity        => Close_Legacy,
-                  External_Name => "SDL_CloseAudio");
-
-   --  Untangle overloaded function names.
-   procedure Close_Device (Device : in Device_Id) renames Close;
-   pragma Import (Convention    => C,
-                  Entity        => Close_Device,
-                  External_Name => "SDL_CloseAudioDevice");
-
-   --  Untangle overloaded function names.
-   function Get_Status_Legacy return Status renames Get_Status;
-   pragma Import (Convention    => C,
-                  Entity        => Get_Status_Legacy,
-                  External_Name => "SDL_GetAudioStatus");
-
-   --  Untangle overloaded function names.
-   function Get_Status_Device (Device : in Device_Id) return Status
-                               renames Get_Status;
-   pragma Import (Convention    => C,
-                  Entity        => Get_Status_Device,
-                  External_Name => "SDL_GetAudioDeviceStatus");
-
-   --  Untangle overloaded function names.
-   procedure Lock_Legacy renames Lock;
-   pragma Import (Convention    => C,
-                  Entity        => Lock_Legacy,
-                  External_Name => "SDL_LockAudio");
-
-   --  Untangle overloaded function names.
-   procedure Lock_Device (Device : in Device_Id) renames Lock;
-   pragma Import (Convention    => C,
-                  Entity        => Lock_Device,
-                  External_Name => "SDL_LockAudioDevice");
-
-   pragma Import (Convention    => C,
-                  Entity        => Mix,
-                  External_Name => "SDL_MixAudio");
-
-   --  Untangle overloaded function names.
-   procedure Pause_Legacy (Pause_On : in Bool) renames Pause;
-   pragma Import (Convention    => C,
-                  Entity        => Pause_Legacy,
-                  External_Name => "SDL_PauseAudio");
-
-   --  Untangle overloaded function names.
-   procedure Pause_Device (Device   : in Device_Id;
-                           Pause_On : in Bool) renames Pause;
-   pragma Import (Convention    => C,
-                  Entity        => Pause_Device,
-                  External_Name => "SDL_PauseAudioDevice");
-
-   --  Untangle overloaded function names.
-   procedure Unlock_Legacy renames Unlock;
-   pragma Import (Convention    => C,
-                  Entity        => Unlock_Legacy,
-                  External_Name => "SDL_UnlockAudio");
-
-   --  Untangle overloaded function names.
-   procedure Unlock_Device (Device : in Device_Id) renames Unlock;
-   pragma Import (Convention    => C,
-                  Entity        => Unlock_Device,
-                  External_Name => "SDL_UnlockAudioDevice");
-
-   pragma Import (Convention    => C,
-                  Entity        => Clear_Queued,
-                  External_Name => "SDL_ClearQueuedAudio");
-
-   pragma Import (Convention    => C,
-                  Entity        => Get_Queued_Size,
-                  External_Name => "SDL_GetQueuedAudioSize");
-
-   pragma Import (Convention    => C,
-                  Entity        => Queue,
-                  External_Name => "SDL_QueueAudio");
-
-   pragma Import (Convention    => C,
-                  Entity        => Get_Num_Devices,
-                  External_Name => "SDL_GetNumAudioDevices");
-
-   pragma Import (Convention    => C,
-                  Entity        => Get_Num_Drivers,
-                  External_Name => "SDL_GetNumAudioDrivers");
 
    Null_Audio : constant Audio_Buffer  := Audio_Buffer  (System.Null_Address);
    Null_User  : constant User_Data_Ptr := User_Data_Ptr (System.Null_Address);

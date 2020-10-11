@@ -45,10 +45,10 @@ package body SDL.Audio.Conversion is
                             Src_Rate     : in Interfaces.C.int;
                             Dst_Format   : in Format_Id;
                             Dst_Channels : in Interfaces.Unsigned_8;
-                            Dst_Rate     : in Interfaces.C.int) return Interfaces.C.int;
-      pragma Import (Convention    => C,
-                     Entity        => C_Build_CVT,
-                     External_Name => "SDL_BuildAudioCVT");
+                            Dst_Rate     : in Interfaces.C.int) return Interfaces.C.int with
+        Import        => True,
+        Convention    => C,
+        External_Name => "SDL_BuildAudioCVT";
       C_Result : Interfaces.C.int;
    begin
       C_Result := C_Build_CVT (CVT          => CVT'Address,
@@ -72,10 +72,10 @@ package body SDL.Audio.Conversion is
       --  C_Convert
       ------------------------------------------------------------------
       function C_Convert (CVT : in System.Address) --  in out Conversion
-                          return Interfaces.C.int;
-      pragma Import (Convention    => C,
-                     Entity        => C_Convert,
-                     External_Name => "SDL_ConvertAudio");
+                          return Interfaces.C.int with
+        Import        => True,
+        Convention    => C,
+        External_Name => "SDL_ConvertAudio";
       C_Result : Interfaces.C.int;
    begin
       C_Result := C_Convert (CVT => CVT'Address);

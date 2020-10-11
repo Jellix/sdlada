@@ -45,10 +45,10 @@ package body SDL.Audio is
       ---------------------------------------------------------------------
       --  C_Free_WAV
       ---------------------------------------------------------------------
-      procedure C_Free_WAV (Audio_Buf : in Audio_Buffer);
-      pragma Import (Convention    => C,
-                     Entity        => C_Free_WAV,
-                     External_Name => "SDL_FreeWAV");
+      procedure C_Free_WAV (Audio_Buf : in Audio_Buffer) with
+        Import        => True,
+        Convention    => C,
+        External_Name => "SDL_FreeWAV";
    begin
       C_Free_WAV (Audio_Buf => Audio_Buf);
       Audio_Buf := Audio_Buffer (System.Null_Address);
@@ -70,10 +70,10 @@ package body SDL.Audio is
                            Spec     : in System.Address; --  in out Audio_Spec
                            Buf      : in System.Address; --     out Audio_Buffer
                            Len      : in System.Address) --     out UInt32
-                           return Audio_Spec_Ptr;
-      pragma Import (Convention    => C,
-                     Entity        => C_Load_WAV,
-                     External_Name => "SDL_LoadWAV_RW");
+                           return Audio_Spec_Ptr with
+        Import        => True,
+        Convention    => C,
+        External_Name => "SDL_LoadWAV_RW";
    begin
       declare
          File_Ops : constant RWops.RWops :=
@@ -97,22 +97,23 @@ package body SDL.Audio is
    --  C_Open
    ---------------------------------------------------------------------
    function C_Open (Desired  : in System.Address;
-                    Obtained : in System.Address) return Interfaces.C.int;
-   pragma Import (Convention    => C,
-                  Entity        => C_Open,
-                  External_Name => "SDL_OpenAudio");
+                    Obtained : in System.Address) return Interfaces.C.int with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_OpenAudio";
 
    ---------------------------------------------------------------------
    --  C_Open_Device
    ---------------------------------------------------------------------
-   function C_Open_Device (Device          : in Interfaces.C.Strings.chars_ptr;
-                           Is_Capture      : in Bool;
-                           Desired         : in System.Address;
-                           Obtained        : in System.Address;
-                           Allowed_Changes : in Allowed_Changes_Flags) return Device_Id;
-   pragma Import (Convention    => C,
-                  Entity        => C_Open_Device,
-                  External_Name => "SDL_OpenAudioDevice");
+   function C_Open_Device
+     (Device          : in Interfaces.C.Strings.chars_ptr;
+      Is_Capture      : in Bool;
+      Desired         : in System.Address;
+      Obtained        : in System.Address;
+      Allowed_Changes : in Allowed_Changes_Flags) return Device_Id with
+     Import        => True,
+     Convention    => C,
+     External_Name => "SDL_OpenAudioDevice";
 
    ---------------------------------------------------------------------
    --  Open
@@ -194,11 +195,12 @@ package body SDL.Audio is
    ---------------------------------------------------------------------
    function Device_Name (Index      : in Device_Index;
                          Is_Capture : in Bool := False) return String is
-      function C_Device_Name (Index      : in Device_Index;
-                              Is_Capture : in Bool) return Interfaces.C.Strings.chars_ptr;
-      pragma Import (Convention    => C,
-                     Entity        => C_Device_Name,
-                     External_Name => "SDL_GetAudioDeviceName");
+      function C_Device_Name
+        (Index      : in Device_Index;
+         Is_Capture : in Bool) return Interfaces.C.Strings.chars_ptr with
+        Import        => True,
+        Convention    => C,
+        External_Name => "SDL_GetAudioDeviceName";
       C_Result : constant Interfaces.C.Strings.chars_ptr :=
         C_Device_Name (Index      => Index,
                        Is_Capture => Is_Capture);
@@ -214,10 +216,11 @@ package body SDL.Audio is
    --  Get_Driver
    ---------------------------------------------------------------------
    function Get_Driver (Index : in Driver_Index) return String is
-      function C_Get_Driver (Index : in Driver_Index) return Interfaces.C.Strings.chars_ptr;
-      pragma Import (Convention    => C,
-                     Entity        => C_Get_Driver,
-                     External_Name => "SDL_GetAudioDriver");
+      function C_Get_Driver
+        (Index : in Driver_Index) return Interfaces.C.Strings.chars_ptr with
+        Import        => True,
+        Convention    => C,
+        External_Name => "SDL_GetAudioDriver";
       C_Result : constant Interfaces.C.Strings.chars_ptr :=
         C_Get_Driver (Index => Index);
    begin
@@ -234,10 +237,10 @@ package body SDL.Audio is
    --  Get_Current_Driver
    ---------------------------------------------------------------------
    function Get_Current_Driver return String is
-      function C_Get_Current_Driver return Interfaces.C.Strings.chars_ptr;
-      pragma Import (Convention    => C,
-                     Entity        => C_Get_Current_Driver,
-                     External_Name => "SDL_GetCurrentAudioDriver");
+      function C_Get_Current_Driver return Interfaces.C.Strings.chars_ptr with
+        Import        => True,
+        Convention    => C,
+        External_Name => "SDL_GetCurrentAudioDriver";
       C_Result : constant Interfaces.C.Strings.chars_ptr :=
         C_Get_Current_Driver;
    begin
