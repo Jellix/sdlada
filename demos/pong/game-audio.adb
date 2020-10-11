@@ -198,7 +198,8 @@ package body Game.Audio is
    ---------------------------------------------------------------------
    procedure Finalize is
    begin
-      SDL.Audio.Pause (Pause_On => SDL.Audio.True);
+      SDL.Audio.Pause (Device   => Audio_Device,
+                       Pause_On => SDL.Audio.True);
       SDL.Audio.Close (Device => Audio_Device);
 
       SDL.Audio.Free_WAV (Audio_Buf => WAV_Ping.Buffer);
