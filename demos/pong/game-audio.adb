@@ -5,17 +5,14 @@ with Ada.Command_Line,
      Ada.Directories,
      Ada.Text_IO;
 
-with Interfaces.C;
+with Interfaces;
+
+with System;
 
 with SDL.Audio.Callbacks,
      SDL.Error;
 
-with System.Storage_Elements;
-
 package body Game.Audio is
-
-   subtype Byte_Array is System.Storage_Elements.Storage_Array;
-   subtype Byte_Index is System.Storage_Elements.Storage_Offset;
 
    --  WAV_Info
    type WAV_Info is
@@ -32,8 +29,8 @@ package body Game.Audio is
    type Play_Info is
       record
          Data       : SDL.Audio.Audio_Buffer;
-         Length     : Byte_Index;
-         Data_Index : Byte_Index;
+         Length     : SDL.Audio.Raw_Audio_Index;
+         Data_Index : SDL.Audio.Raw_Audio_Index;
       end record;
 
    Nothing : constant Play_Info :=
@@ -105,29 +102,27 @@ package body Game.Audio is
    --  My_Callback
    ---------------------------------------------------------------------
    procedure My_Callback (User_Data : in out Play_Info;
-                          Stream    : in     SDL.Audio.Audio_Buffer;
-                          Length    : in     Interfaces.C.int)
+                          Stream    :    out SDL.Audio.Raw_Audio)
    is
       use type SDL.Audio.Audio_Buffer;
-      use type Byte_Index;
+      use type SDL.Audio.Raw_Audio_Index;
 
-      In_Buf   : Byte_Array (0 .. Byte_Index (User_Data.Length - 1));
+      In_Buf   : SDL.Audio.Raw_Audio (0 .. User_Data.Length - 1);
       for In_Buf'Address use System.Address (User_Data.Data);
-      Out_Buf  : Byte_Array (0 .. Byte_Index (Length) - 1);
-      for Out_Buf'Address use System.Address (Stream);
 
-      Last_Byte : Byte_Index;
+      Last_Byte : SDL.Audio.Raw_Audio_Index;
    begin
       if
         User_Data.Data /= SDL.Audio.Null_Audio
       then
          --  Now fill buffer with audio data and update the audio index.
-         Last_Byte := Byte_Index'Min (Byte_Index (User_Data.Length - User_Data.Data_Index),
-                                      Out_Buf'Length);
+         Last_Byte :=
+           SDL.Audio.Raw_Audio_Index'Min (User_Data.Length - User_Data.Data_Index,
+                                          Stream'Length);
 
-         Out_Buf (Out_Buf'First .. Last_Byte - 1) :=
+         Stream (Stream'First .. Last_Byte - 1) :=
            In_Buf (User_Data.Data_Index .. User_Data.Data_Index + Last_Byte - 1);
-         Out_Buf (Last_Byte     .. Out_Buf'Last) := (others => 0);
+         Stream (Last_Byte     .. Stream'Last) := (others => 0);
 
          User_Data.Data_Index := User_Data.Data_Index + Last_Byte;
 
@@ -138,7 +133,7 @@ package body Game.Audio is
          end if;
       else
          --  Fill target buffer with silence.
-         Out_Buf := Byte_Array'(Out_Buf'Range => 0);
+         Stream := SDL.Audio.Raw_Audio'(Stream'Range => 0);
       end if;
    end My_Callback;
 
@@ -215,7 +210,7 @@ package body Game.Audio is
       then
          Currently_Playing :=
            Play_Info'(Data       => WAV_Ping.Buffer,
-                      Length     => Byte_Index (WAV_Ping.Length),
+                      Length     => SDL.Audio.Raw_Audio_Count (WAV_Ping.Length),
                       Data_Index => 0);
       end if;
 
@@ -236,7 +231,7 @@ package body Game.Audio is
       then
          Currently_Playing :=
            Play_Info'(Data       => WAV_Pong.Buffer,
-                      Length     => Byte_Index (WAV_Pong.Length),
+                      Length     => SDL.Audio.Raw_Audio_Count (WAV_Pong.Length),
                       Data_Index => 0);
       end if;
 
