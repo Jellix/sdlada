@@ -286,6 +286,8 @@ begin
 
                Ball.Change_Dir (X => True,
                                 Y => False);
+               --  Slightly increase the speed after each paddle collision.
+               Ball.Set_Speed (New_Speed => Ball.Speed * 1.025);
             end if;
 
             Ball.Move (Clipped => Clipped);
@@ -323,7 +325,9 @@ begin
               (Natural'Image (The_Score (Computer)) & " :" &
                  Natural'Image (The_Score (Human)));
 
+            --  Reset ball position and speed.
             Ball.Warp (To_Position => GC.Ball_Initial);
+            Ball.Set_Speed (New_Speed => GC.Ball_Speed);
 
             --  After placing the ball back into the field, delay ball movement
             --  for a second.
