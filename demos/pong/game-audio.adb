@@ -7,7 +7,7 @@ with Ada.Command_Line,
 
 with Interfaces.C;
 
-with SDL.Audio,
+with SDL.Audio.Callbacks,
      SDL.Error;
 
 with System.Storage_Elements;
@@ -102,53 +102,48 @@ package body Game.Audio is
    end Load_Data;
 
    ---------------------------------------------------------------------
-   --  Callback
+   --  My_Callback
    ---------------------------------------------------------------------
-   procedure Callback (User_Data : in SDL.Audio.User_Data_Ptr;
-                       Stream    : in SDL.Audio.Audio_Buffer;
-                       Length    : in Interfaces.C.int);
-   pragma Convention (Convention => C,
-                      Entity     => Callback);
-
-   procedure Callback (User_Data : in SDL.Audio.User_Data_Ptr;
-                       Stream    : in SDL.Audio.Audio_Buffer;
-                       Length    : in Interfaces.C.int)
+   procedure My_Callback (User_Data : in out Play_Info;
+                          Stream    : in     SDL.Audio.Audio_Buffer;
+                          Length    : in     Interfaces.C.int)
    is
       use type SDL.Audio.Audio_Buffer;
       use type Byte_Index;
 
-      Cur_Play : Play_Info;
-      for Cur_Play'Address use System.Address (User_Data);
-      In_Buf   : Byte_Array (0 .. Byte_Index (Cur_Play.Length - 1));
-      for In_Buf'Address use System.Address (Cur_Play.Data);
+      In_Buf   : Byte_Array (0 .. Byte_Index (User_Data.Length - 1));
+      for In_Buf'Address use System.Address (User_Data.Data);
       Out_Buf  : Byte_Array (0 .. Byte_Index (Length) - 1);
       for Out_Buf'Address use System.Address (Stream);
 
       Last_Byte : Byte_Index;
    begin
       if
-        Cur_Play.Data /= SDL.Audio.Null_Audio
+        User_Data.Data /= SDL.Audio.Null_Audio
       then
          --  Now fill buffer with audio data and update the audio index.
-         Last_Byte := Byte_Index'Min (Byte_Index (Cur_Play.Length - Cur_Play.Data_Index),
+         Last_Byte := Byte_Index'Min (Byte_Index (User_Data.Length - User_Data.Data_Index),
                                       Out_Buf'Length);
 
          Out_Buf (Out_Buf'First .. Last_Byte - 1) :=
-           In_Buf (Cur_Play.Data_Index .. Cur_Play.Data_Index + Last_Byte - 1);
+           In_Buf (User_Data.Data_Index .. User_Data.Data_Index + Last_Byte - 1);
          Out_Buf (Last_Byte     .. Out_Buf'Last) := (others => 0);
 
-         Cur_Play.Data_Index := Cur_Play.Data_Index + Last_Byte;
+         User_Data.Data_Index := User_Data.Data_Index + Last_Byte;
 
          if
-           Cur_Play.Data_Index >= Cur_Play.Length
+           User_Data.Data_Index >= User_Data.Length
          then
-            Cur_Play := Nothing;
+            User_Data := Nothing;
          end if;
       else
          --  Fill target buffer with silence.
          Out_Buf := Byte_Array'(Out_Buf'Range => 0);
       end if;
-   end Callback;
+   end My_Callback;
+
+   package Audio_Callback is new SDL.Audio.Callbacks (User_Data => Play_Info,
+                                                      Callback  => My_Callback);
 
    ---------------------------------------------------------------------
    --  Initialize
@@ -169,7 +164,7 @@ package body Game.Audio is
                               Samples   => 512,
                               Padding   => 0,
                               Size      => 0,
-                              Callback  => Callback'Access,
+                              Callback  => Audio_Callback.C_Callback'Access,
                               User_Data => SDL.Audio.User_Data_Ptr (Currently_Playing'Address));
 
       --  SDL2 API. Enumerate and report devices.
