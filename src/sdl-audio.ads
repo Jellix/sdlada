@@ -171,13 +171,17 @@ package SDL.Audio is
 
    --  For audio device related queries.
    type Device_Id is new Interfaces.Unsigned_32; --  Uint32 SDL_AudioDeviceID
+
+   No_Audio_Device : constant Device_Id := 0;
+   --  Calls to Open which return a device id, may return an invalid ID to
+   --  indicate errors.
+   Legacy_Device   : constant Device_Id := 1;
+   --  device id used by legacy functions (i.e. SDL.Audio.Simple)
+
    type Device_Index is new Interfaces.C.int;
 
    --  For audio driver related queries.
    type Driver_Index is new Interfaces.C.int;
-
-   Legacy_Device : Device_Id := 1;
-   --  device id used by legacy functions (i.e. SDL.Audio.Simple)
 
    ---------------------------------------------------------------------
    --  Open
