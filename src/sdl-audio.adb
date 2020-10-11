@@ -23,14 +23,15 @@
 --------------------------------------------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-with Interfaces.C;
+
+with Interfaces.C.Strings;
 
 with SDL.Error,
      SDL.RWops;
 
-use type Interfaces.C.int;
-
 package body SDL.Audio is
+
+   use type Interfaces.C.Strings.chars_ptr;
 
    --  Used internally to check result of Load_WAV.
    type Audio_Spec_Ptr is access all Audio_Spec;
@@ -38,100 +39,16 @@ package body SDL.Audio is
                       Entity     => Audio_Spec_Ptr);
 
    ---------------------------------------------------------------------
-   --  C_Build_CVT
-   ---------------------------------------------------------------------
-   function C_Build_CVT (CVT          : in System.Address; --  in out Conversion;
-                         Src_Format   : in Format_Id;
-                         Src_Channels : in Interfaces.Unsigned_8;
-                         Src_Rate     : in Interfaces.C.int;
-                         Dst_Format   : in Format_Id;
-                         Dst_Channels : in Interfaces.Unsigned_8;
-                         Dst_Rate     : in Interfaces.C.int) return Interfaces.C.int;
-   pragma Import (Convention    => C,
-                  Entity        => C_Build_CVT,
-                  External_Name => "SDL_BuildAudioCVT");
-
-   ---------------------------------------------------------------------
-   --  C_Convert
-   ---------------------------------------------------------------------
-   function C_Convert (CVT : in System.Address) --  in out Conversion
-                       return Interfaces.C.int;
-   pragma Import (Convention    => C,
-                  Entity        => C_Convert,
-                  External_Name => "SDL_ConvertAudio");
-
-   ---------------------------------------------------------------------
-   --  C_Free_WAV
-   ---------------------------------------------------------------------
-   procedure C_Free_WAV (Audio_Buf : in Audio_Buffer);
-   pragma Import (Convention    => C,
-                  Entity        => C_Free_WAV,
-                  External_Name => "SDL_FreeWAV");
-
-   ---------------------------------------------------------------------
-   --  C_Load_WAV
-   ---------------------------------------------------------------------
-   function C_Load_WAV (Src      : in RWops.RWops;
-                        Free_Src : in Bool;
-                        Spec     : in System.Address; --  in out Audio_Spec
-                        Buf      : in System.Address; --     out Audio_Buffer
-                        Len      : in System.Address) --     out UInt32
-                        return Audio_Spec_Ptr;
-   pragma Import (Convention    => C,
-                  Entity        => C_Load_WAV,
-                  External_Name => "SDL_LoadWAV_RW");
-
-   ---------------------------------------------------------------------
-   --  C_Open
-   ---------------------------------------------------------------------
-   function C_Open (Desired  : in System.Address;
-                    Obtained : in System.Address) return Interfaces.C.int;
-   pragma Import (Convention    => C,
-                  Entity        => C_Open,
-                  External_Name => "SDL_OpenAudio");
-
-   ---------------------------------------------------------------------
-   --  Build_CVT
-   ---------------------------------------------------------------------
-   procedure Build_CVT (CVT          : in out Conversion;
-                        Src_Format   : in     Format_Id;
-                        Src_Channels : in     Interfaces.Unsigned_8;
-                        Src_Rate     : in     Interfaces.C.int;
-                        Dst_Format   : in     Format_Id;
-                        Dst_Channels : in     Interfaces.Unsigned_8;
-                        Dst_Rate     : in     Interfaces.C.int;
-                        Success      :    out Boolean)
-   is
-      C_Result : Interfaces.C.int;
-   begin
-      C_Result := C_Build_CVT (CVT          => CVT'Address,
-                               Src_Format   => Src_Format,
-                               Src_Channels => Src_Channels,
-                               Src_Rate     => Src_Rate,
-                               Dst_Format   => Dst_Format,
-                               Dst_Channels => Dst_Channels,
-                               Dst_Rate     => Dst_Rate);
-
-      Success := C_Result = 1;
-   end Build_CVT;
-
-   ---------------------------------------------------------------------
-   --  Convert
-   ---------------------------------------------------------------------
-   procedure Convert (CVT     : in out Conversion;
-                      Success :    out Boolean)
-   is
-      C_Result : Interfaces.C.int;
-   begin
-      C_Result := C_Convert (CVT => CVT'Address);
-
-      Success := C_Result = 0;
-   end Convert;
-
-   ---------------------------------------------------------------------
    --  Free_WAV
    ---------------------------------------------------------------------
    procedure Free_WAV (Audio_Buf : in out Audio_Buffer) is
+      ---------------------------------------------------------------------
+      --  C_Free_WAV
+      ---------------------------------------------------------------------
+      procedure C_Free_WAV (Audio_Buf : in Audio_Buffer);
+      pragma Import (Convention    => C,
+                     Entity        => C_Free_WAV,
+                     External_Name => "SDL_FreeWAV");
    begin
       C_Free_WAV (Audio_Buf => Audio_Buf);
       Audio_Buf := Audio_Buffer (System.Null_Address);
@@ -145,6 +62,18 @@ package body SDL.Audio is
                        Audio_Buf :    out Audio_Buffer;
                        Audio_Len :    out Interfaces.Unsigned_32;
                        Success   :    out Boolean) is
+      ------------------------------------------------------------------
+      --  C_Load_WAV
+      ------------------------------------------------------------------
+      function C_Load_WAV (Src      : in RWops.RWops;
+                           Free_Src : in Bool;
+                           Spec     : in System.Address; --  in out Audio_Spec
+                           Buf      : in System.Address; --     out Audio_Buffer
+                           Len      : in System.Address) --     out UInt32
+                           return Audio_Spec_Ptr;
+      pragma Import (Convention    => C,
+                     Entity        => C_Load_WAV,
+                     External_Name => "SDL_LoadWAV_RW");
    begin
       declare
          File_Ops : constant RWops.RWops :=
@@ -163,6 +92,27 @@ package body SDL.Audio is
          SDL.Error.Set (Ada.Exceptions.Exception_Message (E));
          Success := False;
    end Load_WAV;
+
+   ---------------------------------------------------------------------
+   --  C_Open
+   ---------------------------------------------------------------------
+   function C_Open (Desired  : in System.Address;
+                    Obtained : in System.Address) return Interfaces.C.int;
+   pragma Import (Convention    => C,
+                  Entity        => C_Open,
+                  External_Name => "SDL_OpenAudio");
+
+   ---------------------------------------------------------------------
+   --  C_Open_Device
+   ---------------------------------------------------------------------
+   function C_Open_Device (Device          : in Interfaces.C.char_array;
+                           Is_Capture      : in Bool;
+                           Desired         : in System.Address;
+                           Obtained        : in System.Address;
+                           Allowed_Changes : in Allowed_Changes_Flags) return Device_Id;
+   pragma Import (Convention    => C,
+                  Entity        => C_Open_Device,
+                  External_Name => "SDL_OpenAudioDevice");
 
    ---------------------------------------------------------------------
    --  Open
@@ -192,5 +142,100 @@ package body SDL.Audio is
 
       Success := Ret_Value = 0;
    end Open;
+
+   ---------------------------------------------------------------------
+   --  Open
+   ---------------------------------------------------------------------
+   procedure Open (Device_Name     : in     String := "";
+                   Is_Capture      : in     Bool   := False;
+                   Desired         : in     Audio_Spec;
+                   Obtained        :    out Audio_Spec;
+                   Allowed_Changes : in     Allowed_Changes_Flags;
+                   Device          :    out Device_Id) is
+   begin
+      Device :=
+        C_Open_Device
+          (Device          => Interfaces.C.To_C (Device_Name),
+           Is_Capture      => Is_Capture,
+           Desired         => Desired'Address,
+           Obtained        => Obtained'Address,
+           Allowed_Changes => Allowed_Changes);
+   end Open;
+
+   ---------------------------------------------------------------------
+   --  Open
+   ---------------------------------------------------------------------
+   procedure Open (Device_Name : in     String := "";
+                   Is_Capture  : in     Bool   := False;
+                   Required    : in out Audio_Spec;
+                   Device      :    out Device_Id) is
+   begin
+      Device :=
+        C_Open_Device
+          (Device          => Interfaces.C.To_C (Device_Name),
+           Is_Capture      => Is_Capture,
+           Desired         => Required'Address,
+           Obtained        => System.Null_Address,
+           Allowed_Changes => 0);
+   end Open;
+
+   ---------------------------------------------------------------------
+   --  Device_Name
+   ---------------------------------------------------------------------
+   function Device_Name (Index      : in Device_Index;
+                         Is_Capture : in Bool) return String is
+      function C_Device_Name (Index      : in Device_Index;
+                              Is_Capture : in Bool) return Interfaces.C.Strings.chars_ptr;
+      pragma Import (Convention    => C,
+                     Entity        => C_Device_Name,
+                     External_Name => "SDL_GetAudioDeviceName");
+      C_Result : constant Interfaces.C.Strings.chars_ptr :=
+        C_Device_Name (Index      => Index,
+                       Is_Capture => Is_Capture);
+   begin
+      if C_Result /= Interfaces.C.Strings.Null_Ptr then
+         return Interfaces.C.Strings.Value (C_Result);
+      end if;
+
+      raise Constraint_Error with "Index out of valid range.";
+   end Device_Name;
+
+   ---------------------------------------------------------------------
+   --  Get_Driver
+   ---------------------------------------------------------------------
+   function Get_Driver (Index : in Driver_Index) return String is
+      function C_Get_Driver (Index : in Driver_Index) return Interfaces.C.Strings.chars_ptr;
+      pragma Import (Convention    => C,
+                     Entity        => C_Get_Driver,
+                     External_Name => "SDL_GetAudioDriver");
+      C_Result : constant Interfaces.C.Strings.chars_ptr :=
+        C_Get_Driver (Index => Index);
+   begin
+      if C_Result /= Interfaces.C.Strings.Null_Ptr then
+         return Interfaces.C.Strings.Value (C_Result);
+      end if;
+
+      --  If Get_Driver returns NULL, an invalid index was specified, so
+      --  simulate a properly failed index check.
+      raise Constraint_Error with "Index out of valid range";
+   end Get_Driver;
+
+   ---------------------------------------------------------------------
+   --  Get_Current_Driver
+   ---------------------------------------------------------------------
+   function Get_Current_Driver return String is
+      function C_Get_Current_Driver return Interfaces.C.Strings.chars_ptr;
+      pragma Import (Convention    => C,
+                     Entity        => C_Get_Current_Driver,
+                     External_Name => "SDL_GetCurrentAudioDriver");
+      C_Result : constant Interfaces.C.Strings.chars_ptr :=
+        C_Get_Current_Driver;
+   begin
+      if C_Result /= Interfaces.C.Strings.Null_Ptr then
+         return Interfaces.C.Strings.Value (C_Result);
+      end if;
+
+      raise Constraint_Error with "No driver has been initialized.";
+   end Get_Current_Driver;
 
 end SDL.Audio;
