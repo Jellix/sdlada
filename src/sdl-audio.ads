@@ -28,23 +28,22 @@ with System;
 
 package SDL.Audio is
 
+   --  Implemented functions of the SDL Audio API.
    --  Source: http://wiki.libsdl.org/CategoryAudio
 
-   --  SDL_Audio
-   --
-   --  SDL_AudioInit -> not mapped, internal use only,
-   --                   SDL.Initialise_Sub_System should be used instead
-   --  SDL_AudioQuit     -> not mapped, internal use only,
-   --                       SDL.Finalise_Sub_System should be used instead
-   --  SDL_BuildAudioCVT    -> SDL.Audio.Conversion.Build_CVT
-   --  SDL_ClearQueuedAudio         -> Clear_Queued
-   --  SDL_CloseAudio (obsolescent) -> Close
-   --  SDL_CloseAudioDevice         -> Close
-   --  SDL_ConvertAudio             -> Conversion.Convert
-   --  SDL_DequeueAudio             -> TBD, recording functionality (Dequeue)
-   --  SDL_FreeWAV                  -> Free_WAV
-   --  SDL_GetAudioDeviceName       -> Get_Device_Name
-   --  SDL_GetAudioDeviceStatus     -> Get_Status
+   --  SDL_AudioInit                    -> not mapped, internal use only
+   --                                      use SDL.Initialise_Sub_System instead
+   --  SDL_AudioQuit                    -> not mapped, internal use only
+   --                                      use SDL.Finalise_Sub_System instead
+   --  SDL_BuildAudioCVT                -> Conversion.Build_CVT
+   --  SDL_ClearQueuedAudio             -> Clear_Queued
+   --  SDL_CloseAudio (obsolescent)     -> Close
+   --  SDL_CloseAudioDevice             -> Close
+   --  SDL_ConvertAudio                 -> Conversion.Convert
+   --  SDL_DequeueAudio                 -> TBD, recording functionality (Dequeue)
+   --  SDL_FreeWAV                      -> Free_WAV
+   --  SDL_GetAudioDeviceName           -> Get_Device_Name
+   --  SDL_GetAudioDeviceStatus         -> Get_Status
    --  SDL_GetAudioDriver               -> Get_Driver
    --  SDL_GetAudioStatus (obsolescent) -> Get_Status
    --  SDL_GetCurrentAudioDriver        -> Get_Current_Driver
