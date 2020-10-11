@@ -31,7 +31,22 @@ package Pong is
    --
    --  Returns the current position of the object in screen coordinates.
    ---------------------------------------------------------------------
-   function Position (This : in Display_Object'Class) return SDL.Coordinates;
+   function Position (This : in Display_Object) return SDL.Coordinates;
+
+   ---------------------------------------------------------------------
+   --  Speed
+   --
+   --  Returns the current speed of the object.
+   ---------------------------------------------------------------------
+   function Speed (This : in Display_Object) return Float;
+
+   ---------------------------------------------------------------------
+   --  Set_Speed
+   --
+   --  Sets a new speed for the the object.
+   ---------------------------------------------------------------------
+   procedure Set_Speed (This      : in out Display_Object;
+                        New_Speed : in     Float);
 
 private
 
@@ -54,6 +69,7 @@ private
          New_Pos : Smooth_Coordinates; --  New position after a call to Move
          Size    : SDL.Sizes;          --  Size of object (for collision detection).
          Colour  : SDL.Video.Palettes.Colour; --  Draw colour.
+         Speed   : Float;              --  Moving speed of object.
       end record;
 
 end Pong;

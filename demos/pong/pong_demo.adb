@@ -249,9 +249,9 @@ begin
       Move_Paddle :
       declare
          Ball_Center   : constant SDL.Dimension :=
-           Pong.Position (This => Ball).Y + GC.Ball_Size / 2;
+           Ball.Position.Y + GC.Ball_Size / 2;
          Paddle_Center : constant SDL.Dimension :=
-           Pong.Position (This => Smart_Ass).Y + GC.Paddle_Height / 2;
+           Smart_Ass.Position.Y + GC.Paddle_Height / 2;
       begin
          if
            Ball_Center - Paddle_Center < -GC.Threshold

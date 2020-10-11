@@ -42,18 +42,21 @@ package Pong.Balls is
    ---------------------------------------------------------------------
    --  Warp
    ---------------------------------------------------------------------
+   not overriding
    procedure Warp (This        : in out Ball;
                    To_Position : in     SDL.Coordinates);
 
    ---------------------------------------------------------------------
    --  Collides
    ---------------------------------------------------------------------
+   not overriding
    function Collides (This : in Ball;
                       That : in Display_Object'Class) return Boolean;
 
    ---------------------------------------------------------------------
    --  Change_Dir
    ---------------------------------------------------------------------
+   not overriding
    procedure Change_Dir (This : in out Ball;
                          X    : in     Boolean;
                          Y    : in     Boolean);
@@ -62,7 +65,6 @@ private
 
    type Ball is new Display_Object with
       record
-         Speed     : Float;
          Direction : Smooth_Coordinates; --  Actual moving vector.
       end record;
 
