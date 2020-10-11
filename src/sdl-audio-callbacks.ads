@@ -25,9 +25,9 @@
 --------------------------------------------------------------------------------------------------------------------
 generic
    type User_Data is private; --  type of data being passed in the callback
-   with procedure Callback (Data   : in User_Data;
-                            Stream : in Audio_Buffer;
-                            Length : in Interfaces.C.int);
+   with procedure Callback (Data   : in out User_Data;
+                            Stream : in     Audio_Buffer;
+                            Length : in     Interfaces.C.int);
    --  Your actual callback function being called by the wrapper declared in
    --  the package which takes care of the conversion of User_Data.
    --  TODO: Do the same for audio data.
