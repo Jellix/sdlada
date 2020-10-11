@@ -26,11 +26,11 @@
 generic
    type User_Data is private; --  type of data being passed in the callback
    with procedure Callback (Data   : in out User_Data;
-                            Stream : in     Audio_Buffer;
-                            Length : in     Interfaces.C.int);
+                            Stream :    out Raw_Audio);
    --  Your actual callback function being called by the wrapper declared in
    --  the package which takes care of the conversion of User_Data.
-   --  TODO: Do the same for audio data.
+   --  For simplicity, audio data is handled as if it were just a bunch of
+   --  bytes. This should be sufficient for most purposes of such a callback.
 package SDL.Audio.Callbacks is
 
    procedure C_Callback (Data   : in User_Data_Ptr;

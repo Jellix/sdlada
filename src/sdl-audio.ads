@@ -24,7 +24,7 @@
 --  SDL.Audio
 --------------------------------------------------------------------------------------------------------------------
 
-with System;
+with System.Storage_Elements;
 
 package SDL.Audio is
 
@@ -64,10 +64,14 @@ package SDL.Audio is
    --  SDL_UnlockAudio (obsolescent)    -> Unlock
    --  SDL_UnlockAudioDevice            -> Unlock
 
-   --  FIXME: As like other stuff this should be hidden in an controlled object
-   --         and callbacks should be implemented via generics.
    subtype Audio_Buffer  is System.Address; --  C allocated buffer, see Load_WAV
    subtype User_Data_Ptr is System.Address; --  Variable type.
+
+   --  For the callback functionality, ignore any audio format and just treat
+   --  is as a raw memory array of bytes.
+   subtype Raw_Audio       is System.Storage_Elements.Storage_Array;
+   subtype Raw_Audio_Index is System.Storage_Elements.Storage_Offset;
+   subtype Raw_Audio_Count is System.Storage_Elements.Storage_Offset;
 
    type Format_Id is new Interfaces.Unsigned_16;
    --  Format_Id is technically a bit-record with the following meaning for
@@ -131,8 +135,8 @@ package SDL.Audio is
    --            information and
    --  Length    is the length of the audio buffer in bytes.
    type Audio_Callback is access
-     procedure (User_Data : in User_Data_Ptr;
-                Stream    : in Audio_Buffer;
+     procedure (User_Data : in User_Data_Ptr; --  C pointer to user data object
+                Stream    : in Audio_Buffer;  --  C pointer to Raw_Audio
                 Length    : in Interfaces.C.int);
    pragma Convention (Convention => C,
                       Entity     => Audio_Callback);
