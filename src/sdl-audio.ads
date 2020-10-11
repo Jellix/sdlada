@@ -251,7 +251,7 @@ package SDL.Audio is
    procedure Open (Required : in out Audio_Spec;
                    Success  :    out Boolean);
    pragma Obsolescent (Entity  => Open,
-                       Message => "Consider using SDL.Audio.Open_Device instead.");
+                       Message => "Consider using SDL.Audio.Open (Device => ...) instead.");
 
    ---------------------------------------------------------------------
    --  Open
@@ -324,7 +324,7 @@ package SDL.Audio is
                    Obtained : in out Audio_Spec;
                    Success  :    out Boolean);
    pragma Obsolescent (Entity  => Open,
-                       Message => "Consider using SDL.Audio.Open_Device instead.");
+                       Message => "Consider using SDL.Audio.Open (Device => ...) instead.");
 
    ---------------------------------------------------------------------
    --  Pause
@@ -340,9 +340,11 @@ package SDL.Audio is
    --  Silence will be written to the audio device during the pause.
    ---------------------------------------------------------------------
    procedure Pause (Pause_On : in Bool);
+   pragma Obsolescent (Entity  => Pause,
+                       Message => "Consider using SDL.Audio.Pause (Device => ...) instead.");
 
    ---------------------------------------------------------------------
-   --  Pause_Device
+   --  Pause
    --
    --  Use this function to pause and unpause audio playback on a
    --  specified device.
@@ -377,6 +379,8 @@ package SDL.Audio is
    --  Gets the current audio state.
    ---------------------------------------------------------------------
    function Get_Status return Status;
+   pragma Obsolescent (Entity  => Get_Status,
+                       Message => "Consider using SDL.Audio.Get_Status (Device => ...) instead.");
 
    ---------------------------------------------------------------------
    --  Load_WAV
@@ -450,10 +454,10 @@ package SDL.Audio is
    ---------------------------------------------------------------------
    procedure Lock;
    pragma Obsolescent (Entity  => Lock,
-                       Message => "Consider using Lock_Device instead.");
+                       Message => "Consider using SDL.Audio.Lock (Device => ...) instead.");
 
    ---------------------------------------------------------------------
-   --  Lock_Device
+   --  Lock
    --
    --  Use this function to lock out the audio callback function for a
    --  specified device.
@@ -496,6 +500,8 @@ package SDL.Audio is
    --  Unlocks the callback function locked by a previous Lock call.
    ---------------------------------------------------------------------
    procedure Unlock;
+   pragma Obsolescent (Entity  => Unlock,
+                       Message => "Consider using SDL.Audio.Unlock (Device => ...) instead.");
 
    ---------------------------------------------------------------------
    --  Unlock_Device
@@ -511,7 +517,7 @@ package SDL.Audio is
    ---------------------------------------------------------------------
    procedure Close;
    pragma Obsolescent (Entity  => Close,
-                       Message => "Consider using SDL.Audio.Close_Device instead.");
+                       Message => "Consider using SDL.Audio.Close (Device => ) instead.");
 
    ---------------------------------------------------------------------
    --  Close_Device
@@ -843,22 +849,26 @@ private
                   Entity        => Close_Device,
                   External_Name => "SDL_CloseAudioDevice");
 
+   --  Untangle overloaded function names.
    function Get_Status_Legacy return Status renames Get_Status;
    pragma Import (Convention    => C,
                   Entity        => Get_Status_Legacy,
                   External_Name => "SDL_GetAudioStatus");
 
+   --  Untangle overloaded function names.
    function Get_Status_Device (Device : in Device_Id) return Status
                                renames Get_Status;
    pragma Import (Convention    => C,
                   Entity        => Get_Status_Device,
                   External_Name => "SDL_GetAudioDeviceStatus");
 
+   --  Untangle overloaded function names.
    procedure Lock_Legacy renames Lock;
    pragma Import (Convention    => C,
                   Entity        => Lock_Legacy,
                   External_Name => "SDL_LockAudio");
 
+   --  Untangle overloaded function names.
    procedure Lock_Device (Device : in Device_Id) renames Lock;
    pragma Import (Convention    => C,
                   Entity        => Lock_Device,
