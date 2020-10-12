@@ -118,13 +118,17 @@ package SDL.Audio is
 
    type Byte_Count  is new Unsigned_32;
    type Buffer_Base is new System.Address;
-   type User_Type   is new Unsigned_64;
 
-   type Callback_Access is
-     access procedure  (Userdata  : in User_Type;
-                        Audio_Buf : in Buffer_Base;
-                        Audio_Len : in Byte_Count)
-     with Convention => C;
+   package Internal is
+      --  This callback should never be directly used by the user of the
+      --  library.  Instead, an instance of SDL.Audio.Callbacks should be
+      --  created.
+      type Callback_Access is
+        access procedure  (Userdata  : in System.Address;
+                           Audio_Buf : in Buffer_Base;
+                           Audio_Len : in Interfaces.C.int)
+        with Convention => C;
+   end Internal;
 
    type Sample_Rate   is new Integer_32;
    type Channel_Count is new Unsigned_8;
@@ -138,10 +142,11 @@ package SDL.Audio is
          Samples   : Unsigned_16;     -- 2
          Padding   : Unsigned_16;     -- 2
          Size      : Unsigned_32;     -- 4
-         Callback  : Callback_Access; -- 8
-         Userdata  : User_Type;       -- 8
+         Callback  : Internal.Callback_Access; -- 8
+         Userdata  : System.Address;  -- 8
       end record
-        with Size => 8 * 32;
+     with Convention => C;
+   --  Size => 8 * 32; --  This is correct only for 64 bit machines.
 
    type Buffer_Type is private;
    Null_Buffer : constant Buffer_Type;
