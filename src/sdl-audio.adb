@@ -118,29 +118,27 @@ package body SDL.Audio is
    --  Open
    ---------------------------------------------------------------------
    procedure Open (Desired  : in out Audio_Spec;
-                   Obtained : in out Audio_Spec;
-                   Success  :    out Boolean)
-   is
-      Ret_Value : Interfaces.C.int;
+                   Obtained : in out Audio_Spec) is
    begin
-      Ret_Value := C_Open (Desired  => Desired'Address,
-                           Obtained => Obtained'Address);
-
-      Success := Ret_Value = 0;
+      if
+        C_Open (Desired  => Desired'Address,
+                Obtained => Obtained'Address) /= 0
+      then
+         raise Audio_Error with SDL.Error.Get;
+      end if;
    end Open;
 
    ---------------------------------------------------------------------
    --  Open
    ---------------------------------------------------------------------
-   procedure Open (Required : in out Audio_Spec;
-                   Success  :    out Boolean)
-   is
-      Ret_Value : Interfaces.C.int;
+   procedure Open (Required : in out Audio_Spec) is
    begin
-      Ret_Value := C_Open (Desired  => Required'Address,
-                           Obtained => System.Null_Address);
-
-      Success := Ret_Value = 0;
+      if
+        C_Open (Desired  => Required'Address,
+                Obtained => System.Null_Address) /= 0
+      then
+         raise Audio_Error with SDL.Error.Get;
+      end if;
    end Open;
 
    ---------------------------------------------------------------------

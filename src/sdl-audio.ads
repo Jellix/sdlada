@@ -63,6 +63,8 @@ package SDL.Audio with Preelaborate => True is
    --  SDL_UnlockAudio (obsolescent)    -> Unlock
    --  SDL_UnlockAudioDevice            -> Unlock
 
+   Audio_Error : exception;
+
    subtype Audio_Buffer  is System.Address; --  C allocated buffer, see Load_WAV
    subtype User_Data_Ptr is System.Address; --  Variable type.
 
@@ -193,7 +195,7 @@ package SDL.Audio with Preelaborate => True is
    --  requested format, and will be automatically converted to the
    --  hardware audio format if necessary.
    --
-   --  This function returns False if it failed to open the audio
+   --  This function raises Audio_Error if SDL failed to open the audio
    --  device, or couldn't set up the audio thread.
    --
    --  To open the audio device a Required Audio_Spec must be created.
@@ -251,8 +253,7 @@ package SDL.Audio with Preelaborate => True is
    --  buffer, you should allocate any local mixing buffers after you
    --  open the audio device.
    ---------------------------------------------------------------------
-   procedure Open (Required : in out Audio_Spec;
-                   Success  :    out Boolean);
+   procedure Open (Required : in out Audio_Spec);
    pragma Obsolescent (Entity  => Open,
                        Message => "Consider using SDL.Audio.Open (Device => ...) instead.");
 
@@ -265,7 +266,7 @@ package SDL.Audio with Preelaborate => True is
    --  parameters, and returns True if successful, placing the actual
    --  hardware parameters in the structure pointed to by Obtained.
    --
-   --  This function returns False if it failed to open the audio
+   --  This function raises Audio_Error if SDL failed to open the audio
    --  device, or couldn't set up the audio thread.
    --
    --  To open the audio device a desired Audio_Spec must be created.
@@ -324,8 +325,7 @@ package SDL.Audio with Preelaborate => True is
    --  open the audio device.
    ---------------------------------------------------------------------
    procedure Open (Desired  : in out Audio_Spec;
-                   Obtained : in out Audio_Spec;
-                   Success  :    out Boolean);
+                   Obtained : in out Audio_Spec);
    pragma Obsolescent (Entity  => Open,
                        Message => "Consider using SDL.Audio.Open (Device => ...) instead.");
 
