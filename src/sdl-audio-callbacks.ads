@@ -31,7 +31,8 @@ generic
    --  the package which takes care of the conversion of User_Data.
    --  For simplicity, audio data is handled as if it were just a bunch of
    --  bytes. This should be sufficient for most purposes of such a callback.
-package SDL.Audio.Callbacks with Preelaborate => True is
+package SDL.Audio.Callbacks is
+   pragma Preelaborate;
 
    procedure C_Callback (Data   : in User_Data_Ptr;
                          Stream : in Audio_Buffer;
