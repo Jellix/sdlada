@@ -183,7 +183,7 @@ package body SDL.Audio is
            Is_Capture      => Is_Capture,
            Desired         => Required'Address,
            Obtained        => System.Null_Address,
-           Allowed_Changes => 0);
+           Allowed_Changes => Allow_No_Change);
       Interfaces.C.Strings.Free (C_Device_Name);
    end Open;
 

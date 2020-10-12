@@ -115,13 +115,27 @@ package SDL.Audio with Preelaborate => True is
    pragma Convention (Convention => C,
                       Entity     => Status);
 
-   type Allowed_Changes_Flags is new Interfaces.C.int;
+   --  Map the C int for allowed changes onto a proper (record) type.
+   type Allowed_Changes_Flags is
+      record
+         Allow_Frequency_Change : Boolean;
+         Allow_Format_Change    : Boolean;
+         Allow_Channels_Change  : Boolean;
+         Allow_Samples_Change   : Boolean;
+      end record
+     with Size => Interfaces.C.int'Size;
+   for Allowed_Changes_Flags use
+      record
+         Allow_Frequency_Change at 0 range 0 .. 0; -- 16#0000_0001#
+         Allow_Format_Change    at 0 range 1 .. 1; -- 16#0000_0002#
+         Allow_Channels_Change  at 0 range 2 .. 2; -- 16#0000_0004#
+         Allow_Samples_Change   at 0 range 3 .. 3; -- 16#0000_0008#
+      end record;
 
-   Allow_Frequency_Change : constant Allowed_Changes_Flags := 16#0000_0001#;
-   Allow_Format_Change    : constant Allowed_Changes_Flags := 16#0000_0002#;
-   Allow_Channels_Change  : constant Allowed_Changes_Flags := 16#0000_0004#;
-   Allow_Samples_Change   : constant Allowed_Changes_Flags := 16#0000_0008#;
-   Allow_Any_Change       : constant Allowed_Changes_Flags := 16#0000_000F#;
+   Allow_No_Change  : constant Allowed_Changes_Flags :=
+     Allowed_Changes_Flags'(others => False);
+   Allow_Any_Change : constant Allowed_Changes_Flags :=
+     Allowed_Changes_Flags'(others => True);
 
    MAX_MIX_VOLUME : constant := 128;
    subtype Volume is Interfaces.C.int range 0 .. MAX_MIX_VOLUME;
