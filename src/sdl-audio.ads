@@ -74,7 +74,6 @@ package SDL.Audio with Preelaborate => True is
    subtype Raw_Audio_Index is System.Storage_Elements.Storage_Offset;
    subtype Raw_Audio_Count is System.Storage_Elements.Storage_Offset;
 
-   type Format_Id is new Interfaces.Unsigned_16;
    --  Format_Id is technically a bit-record with the following meaning for
    --  the bits:
    --  for Format_Id use
@@ -94,22 +93,84 @@ package SDL.Audio with Preelaborate => True is
    --   |        |           |  +--sample bit size---+
    --   |        |           |  |                    |
    --  15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
+   type Format_Id is
+      record
+         Sample_Size  : Interfaces.C.int range 0 .. 255;
+         Is_Float     : Boolean;
+         Is_MSB_First : Boolean;
+         Is_Signed    : Boolean;
+      end record with
+     Bit_Order => System.Low_Order_First,
+     Size      => Interfaces.Unsigned_16'Size;
+   --  Force bit order to little endian. As used here, this should work
+   --  as intended on big endian targets, too, possibly triggering a
+   --  compiler warning, though.
+   for Format_Id use
+      record
+         Sample_Size  at 0 range  0 ..  7;  --  16#00FF#
+         Is_Float     at 0 range  8 ..  8;  --  16#0100#
+         Is_MSB_First at 0 range 12 .. 12;  --  16#1000#
+         Is_Signed    at 0 range 15 .. 15;  --  16#8000#
+      end record;
 
    --  "Standard" audio formats.
-   Unsigned_8     : constant Format_Id := 16#0008#; -- AUDIO_U8
-   Signed_8       : constant Format_Id := 16#8008#; -- AUDIO_S8
-   Unsigned_16_LE : constant Format_Id := 16#0010#; -- AUDIO_U16LSB
-   Signed_16_LE   : constant Format_Id := 16#8010#; -- AUDIO_S16LSB
-   Unsigned_16_BE : constant Format_Id := 16#1010#; -- AUDIO_U16MSB
-   Signed_16_BE   : constant Format_Id := 16#9010#; -- AUDIO_S16MSB
+
+   --  16#0008#, AUDIO_U8
+   Unsigned_8     : constant Format_Id := Format_Id'(Sample_Size  => 8,
+                                                     Is_Float     => False,
+                                                     Is_MSB_First => False,
+                                                     Is_Signed    => False);
+   --  16#8008#, AUDIO_S8
+   Signed_8       : constant Format_Id := Format_Id'(Sample_Size  => 8,
+                                                     Is_Float     => False,
+                                                     Is_MSB_First => False,
+                                                     Is_Signed    => True);
+   --  16#0010#, AUDIO_U16LSB
+   Unsigned_16_LE : constant Format_Id := Format_Id'(Sample_Size  => 16,
+                                                     Is_Float     => False,
+                                                     Is_MSB_First => False,
+                                                     Is_Signed    => False);
+   --  16#8010#, AUDIO_S16LSB
+   Signed_16_LE   : constant Format_Id := Format_Id'(Sample_Size  => 16,
+                                                     Is_Float     => False,
+                                                     Is_MSB_First => False,
+                                                     Is_Signed    => True);
+   --  16#1010#, AUDIO_U16MSB
+   Unsigned_16_BE : constant Format_Id := Format_Id'(Sample_Size  => 16,
+                                                     Is_Float     => False,
+                                                     Is_MSB_First => True,
+                                                     Is_Signed    => False);
+   --  16#9010#, AUDIO_S16MSB
+   Signed_16_BE   : constant Format_Id := Format_Id'(Sample_Size  => 16,
+                                                     Is_Float     => False,
+                                                     Is_MSB_First => True,
+                                                     Is_Signed    => True);
 
    --  32 bit audio formats (always signed)
-   Signed_32_LE   : constant Format_Id := 16#8020#; -- AUDIO_S32LSB
-   Signed_32_BE   : constant Format_Id := 16#9020#; -- AUDIO_S32MSB
+
+   --  16#8020#, AUDIO_S32LSB
+   Signed_32_LE   : constant Format_Id := Format_Id'(Sample_Size  => 32,
+                                                     Is_Float     => False,
+                                                     Is_MSB_First => False,
+                                                     Is_Signed    => True);
+   --  16#9020#, AUDIO_S32MSB
+   Signed_32_BE   : constant Format_Id := Format_Id'(Sample_Size  => 32,
+                                                     Is_Float     => False,
+                                                     Is_MSB_First => True,
+                                                     Is_Signed    => True);
 
    --  Float audio formats
-   Float_32_LE    : constant Format_Id := 16#8120#; -- AUDIO_F32LSB
-   Float_32_BE    : constant Format_Id := 16#9120#; -- AUDIO_F32MSB
+
+   --  16#8120#, AUDIO_F32LSB
+   Float_32_LE    : constant Format_Id := Format_Id'(Sample_Size  => 32,
+                                                     Is_Float     => True,
+                                                     Is_MSB_First => False,
+                                                     Is_Signed    => True);
+   --  16#9120#, AUDIO_F32MSB
+   Float_32_BE    : constant Format_Id := Format_Id'(Sample_Size  => 32,
+                                                     Is_Float     => True,
+                                                     Is_MSB_First => True,
+                                                     Is_Signed    => True);
 
    type Status is (Stopped, Playing, Paused);
    pragma Convention (Convention => C,
@@ -123,7 +184,12 @@ package SDL.Audio with Preelaborate => True is
          Allow_Channels_Change  : Boolean;
          Allow_Samples_Change   : Boolean;
       end record
-     with Size => Interfaces.C.int'Size;
+     with
+       Bit_Order => System.Low_Order_First,
+       Size      => Interfaces.C.int'Size;
+   --  Force bit order to little endian. As used here, this should work
+   --  as intended on big endian targets, too, possibly triggering a
+   --  compiler warning, though.
    for Allowed_Changes_Flags use
       record
          Allow_Frequency_Change at 0 range 0 .. 0; -- 16#0000_0001#
