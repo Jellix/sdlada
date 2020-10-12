@@ -10,7 +10,8 @@ with Interfaces;
 with System;
 
 with SDL.Audio.Callbacks,
-     SDL.Error;
+     SDL.Error,
+     SDL.RWops;
 
 package body Game.Audio is
 
@@ -60,42 +61,40 @@ package body Game.Audio is
                (Name => Ada.Command_Line.Command_Name),
            Name => "data");
       WAV_Spec : SDL.Audio.Audio_Spec;
-      Success  : Boolean;
    begin
-      SDL.Audio.Load_WAV (File_Name =>
-                            Ada.Directories.Compose
-                              (Containing_Directory => Data_Dir,
-                               Name                 => "ping",
-                               Extension            => "wav"),
-                          Spec      => WAV_Spec,
-                          Audio_Buf => WAV_Ping.Buffer,
-                          Audio_Len => WAV_Ping.Length,
-                          Success   => Success);
-      pragma Unreferenced (WAV_Spec);
-
-      if not Success then
-         Ada.Text_IO.Put_Line (File => Ada.Text_IO.Standard_Error,
-                               Item => SDL.Error.Get);
+      begin
+         SDL.Audio.Load_WAV (File_Name =>
+                               Ada.Directories.Compose
+                                 (Containing_Directory => Data_Dir,
+                                  Name                 => "ping",
+                                  Extension            => "wav"),
+                             Spec      => WAV_Spec,
+                             Audio_Buf => WAV_Ping.Buffer,
+                             Audio_Len => WAV_Ping.Length);
+      exception
+         when SDL.RWops.RWops_Error | SDL.Audio.Audio_Error =>
+            Ada.Text_IO.Put_Line (File => Ada.Text_IO.Standard_Error,
+                                  Item => SDL.Error.Get);
 
          WAV_Ping := No_Wave;
-      end if;
+      end;
 
-      SDL.Audio.Load_WAV (File_Name =>
-                             Ada.Directories.Compose
-                              (Containing_Directory => Data_Dir,
-                               Name                 => "pong",
-                               Extension            => "wav"),
-                          Spec      => WAV_Spec,
-                          Audio_Buf => WAV_Pong.Buffer,
-                          Audio_Len => WAV_Pong.Length,
-                          Success   => Success);
+      begin
+         SDL.Audio.Load_WAV (File_Name =>
+                               Ada.Directories.Compose
+                                 (Containing_Directory => Data_Dir,
+                                  Name                 => "pong",
+                                  Extension            => "wav"),
+                             Spec      => WAV_Spec,
+                             Audio_Buf => WAV_Pong.Buffer,
+                             Audio_Len => WAV_Pong.Length);
+      exception
+         when SDL.RWops.RWops_Error | SDL.Audio.Audio_Error =>
+            Ada.Text_IO.Put_Line (File => Ada.Text_IO.Standard_Error,
+                                  Item => SDL.Error.Get);
 
-      if not Success then
-         Ada.Text_IO.Put_Line (File => Ada.Text_IO.Standard_Error,
-                               Item => SDL.Error.Get);
-
-         WAV_Pong := No_Wave;
-      end if;
+            WAV_Pong := No_Wave;
+      end;
    end Load_Data;
 
    ---------------------------------------------------------------------
