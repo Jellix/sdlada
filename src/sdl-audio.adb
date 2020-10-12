@@ -98,6 +98,24 @@ package body SDL.Audio is
       end if;
    end Open;
 
+   procedure Open (Required : in out Audio_Spec)
+   is
+      function SDL_Open_Audio (Desired  : in     Audio_Spec;
+                               Obtained : access Audio_Spec)
+                              return C.int with
+        Import        => True,
+        Convention    => C,
+        External_Name => "SDL_OpenAudio";
+      --  Alternative interface. If "Obtained" is NULL, Desired will only be
+      --  updated with the respective size and silence values.
+      Result : constant C.int := SDL_Open_Audio (Desired  => Required,
+                                                 Obtained => null);
+   begin
+      if Result /= SDL.Success then
+         raise Audio_Error with SDL.Error.Get;
+      end if;
+   end Open;
+
    function Get_Number_Of_Devices (Is_Capture : in Boolean) return Natural
    is
       function SDL_Get_Number_Of_Devices (Capture : in C.int)

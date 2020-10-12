@@ -164,6 +164,9 @@ package SDL.Audio is
                    Obtained :    out Audio_Spec);
    pragma Obsolescent (Entity  => Open,
                        Message => "Consider using Open (Device => ...) instead.");
+   procedure Open (Required : in out Audio_Spec);
+   pragma Obsolescent (Entity  => Open,
+                       Message => "Consider using Open (Device => ...) instead.");
 
    function Get_Number_Of_Devices (Is_Capture : in Boolean) return Natural;
    function Get_Device_Name (Index      : in Positive;
