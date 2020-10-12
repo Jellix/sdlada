@@ -87,6 +87,35 @@ package SDL.Audio is
    Audio_S32_Sys : constant Audio_Format := (Bits => 32, Signed =>  True, Big_Endian => Sys_Is_Big_Endian,
                                              others => False);
 
+   ---------------------------------
+   --  SDL_AUDIO_ALLOW_... flags  --
+   ---------------------------------
+   --  Map the C int for allowed changes onto a proper (record) type.
+   type Allowed_Changes_Flags is
+      record
+         Allow_Frequency_Change : Boolean;
+         Allow_Format_Change    : Boolean;
+         Allow_Channels_Change  : Boolean;
+         Allow_Samples_Change   : Boolean;
+      end record
+     with
+       Bit_Order => System.Low_Order_First, --  force LE bit counts
+       Size      => Interfaces.C.int'Size;
+   --  The explicit bit order should be safe also on Big Endian machines,
+   --  albeit on those the compiler may give some diagnostics.
+   for Allowed_Changes_Flags use
+      record
+         Allow_Frequency_Change at 0 range 0 .. 0; -- 16#0000_0001#
+         Allow_Format_Change    at 0 range 1 .. 1; -- 16#0000_0002#
+         Allow_Channels_Change  at 0 range 2 .. 2; -- 16#0000_0004#
+         Allow_Samples_Change   at 0 range 3 .. 3; -- 16#0000_0008#
+      end record;
+
+   Allow_No_Change  : constant Allowed_Changes_Flags :=
+     Allowed_Changes_Flags'(others => False);
+   Allow_Any_Change : constant Allowed_Changes_Flags :=
+     Allowed_Changes_Flags'(others => True);
+
    type Byte_Count  is new Unsigned_32;
    type Buffer_Base is new System.Address;
    type User_Type   is new Unsigned_64;
