@@ -1,6 +1,5 @@
 --------------------------------------------------------------------------------------------------------------------
---  Copyright (c) 2020, Luke A. Guest
---  Contributed by Vinzent "Jellix" Saranen
+--  Copyright (c) 2020, Vinzent "Jellix" Saranen
 --
 --  This software is provided 'as-is', without any express or implied
 --  warranty. In no event will the authors be held liable for any damages
@@ -26,7 +25,7 @@
 --  TODO: SDL_AudioStream interface.
 --------------------------------------------------------------------------------------------------------------------
 
-package SDL.Audio.Conversion is
+package SDL.Audio.Conversion with Preelaborate => True is
 
    --  Filter function prototype
    type CVT;                         -- SDL_AudioCVT

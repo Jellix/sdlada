@@ -1,6 +1,5 @@
 --------------------------------------------------------------------------------------------------------------------
---  Copyright (c) 2020, Luke A. Guest
---  Contributed by Vinzent "Jellix" Saranen
+--  Copyright (c) 2020, Vinzent "Jellix" Saranen
 --
 --  This software is provided 'as-is', without any express or implied
 --  warranty. In no event will the authors be held liable for any damages
@@ -23,6 +22,7 @@
 --------------------------------------------------------------------------------------------------------------------
 --  SDL.Audio.Callbacks
 --------------------------------------------------------------------------------------------------------------------
+
 generic
    type User_Data is private; --  type of data being passed in the callback
    with procedure Callback (Data   : in out User_Data;
@@ -31,7 +31,7 @@ generic
    --  the package which takes care of the conversion of User_Data.
    --  For simplicity, audio data is handled as if it were just a bunch of
    --  bytes. This should be sufficient for most purposes of such a callback.
-package SDL.Audio.Callbacks is
+package SDL.Audio.Callbacks with Preelaborate => True is
 
    procedure C_Callback (Data   : in User_Data_Ptr;
                          Stream : in Audio_Buffer;

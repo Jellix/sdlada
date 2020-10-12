@@ -1,6 +1,5 @@
 --------------------------------------------------------------------------------------------------------------------
---  Copyright (c) 2020, Luke A. Guest
---  Contributed by Vinzent "Jellix" Saranen
+--  Copyright (c) 2020, Vinzent "Jellix" Saranen
 --
 --  This software is provided 'as-is', without any express or implied
 --  warranty. In no event will the authors be held liable for any damages
@@ -26,7 +25,7 @@
 
 with System.Storage_Elements;
 
-package SDL.Audio is
+package SDL.Audio with Preelaborate => True is
 
    --  Implemented functions of the SDL Audio API.
    --  Source: http://wiki.libsdl.org/CategoryAudio
@@ -121,9 +120,6 @@ package SDL.Audio is
    Allow_Channels_Change  : constant Allowed_Changes_Flags := 16#0000_0004#;
    Allow_Samples_Change   : constant Allowed_Changes_Flags := 16#0000_0008#;
    Allow_Any_Change       : constant Allowed_Changes_Flags := 16#0000_000F#;
-
-   Null_Audio : constant Audio_Buffer;
-   Null_User  : constant User_Data_Ptr;
 
    MAX_MIX_VOLUME : constant := 128;
    subtype Volume is Interfaces.C.int range 0 .. MAX_MIX_VOLUME;
@@ -263,11 +259,11 @@ package SDL.Audio is
    ---------------------------------------------------------------------
    --  Open
    --
-   --  Opens the audio device with the desired parameters.
+   --  Opens the default audio device with the desired parameters.
    --
-   --  This function opens the audio device with the Desired parameters,
-   --  and returns True if successful, placing the actual hardware
-   --  parameters in the structure pointed to by Obtained.
+   --  This function opens the default audio device with the Desired
+   --  parameters, and returns True if successful, placing the actual
+   --  hardware parameters in the structure pointed to by Obtained.
    --
    --  This function returns False if it failed to open the audio
    --  device, or couldn't set up the audio thread.
@@ -888,10 +884,5 @@ package SDL.Audio is
                    Is_Capture  : in     Bool   := False;
                    Required    : in out Audio_Spec;
                    Device      :    out Device_Id);
-
-private
-
-   Null_Audio : constant Audio_Buffer  := Audio_Buffer  (System.Null_Address);
-   Null_User  : constant User_Data_Ptr := User_Data_Ptr (System.Null_Address);
 
 end SDL.Audio;
