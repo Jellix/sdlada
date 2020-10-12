@@ -10,27 +10,38 @@ begin
    SDL.Log.Set (Category => SDL.Log.Application, Priority => SDL.Log.Debug);
 
    if SDL.Initialise (Flags => SDL.Enable_Audio) then
-      SDL.Log.Put_Debug (Message => "Checking for audio drivers...");
+      SDL.Log.Put_Debug (Message => "Checking for available audio drivers...");
 
       for i in 0 .. SDL.Audio.Get_Num_Drivers - 1 loop
-         SDL.Log.Put_Debug (Message => SDL.Audio.Get_Driver (Index => i));
+         SDL.Log.Put_Debug
+           (Message => "  Found: """ & SDL.Audio.Get_Driver (Index => i) & """");
       end loop;
+
+      SDL.Log.Put_Debug
+        (Message =>
+           "  Current audio driver is """ & SDL.Audio.Get_Current_Driver & """");
 
       SDL.Log.Put_Debug (Message => "Checking for audio devices...");
 
       for i in 0 .. SDL.Audio.Get_Num_Devices - 1 loop
-         SDL.Log.Put_Debug (Message => SDL.Audio.Device_Name (Index => i));
+         SDL.Log.Put_Debug
+           (Message => "  Found """ & SDL.Audio.Device_Name (Index => i) & """");
       end loop;
 
       SDL.Log.Put_Debug (Message => "Checking for recording devices...");
 
       for i in 0 .. SDL.Audio.Get_Num_Devices (Is_Capture => SDL.Audio.True) - 1 loop
-         SDL.Log.Put_Debug (Message => SDL.Audio.Device_Name (Index      => i,
-                                                              Is_Capture => SDL.Audio.True));
+         SDL.Log.Put_Debug
+           (Message =>
+              "  Found """ &
+              SDL.Audio.Device_Name (Index      => i,
+                                     Is_Capture => SDL.Audio.True) & """");
       end loop;
    end if;
 
-   SDL.Log.Put_Debug ("Trying to open the default audio device, requesting 16 bit/48 kHz 5.1 surround...");
+   SDL.Log.Put_Debug
+     ("Trying to open the default audio device, requesting 16 bit/48 kHz 5.1 surround...");
+
    declare
       Obtained : SDL.Audio.Audio_Spec;
       Device   : SDL.Audio.Device_Id;
@@ -53,12 +64,18 @@ begin
          Device          => Device);
 
       if Device = SDL.Audio.No_Audio_Device then
-         SDL.Log.Put_Debug (Message => "Call failed, did not get a device id!");
          SDL.Log.Put_Error (Message => SDL.Error.Get);
+         SDL.Log.Put_Debug (Message => "Call failed, did not get a device id!");
       else
          SDL.Log.Put_Debug (Message => "Obtained audio data:");
          SDL.Log.Put_Debug (Message => "Frequency:" & Obtained.Frequency'Image);
-         SDL.Log.Put_Debug (Message => "Format   :" & Obtained.Format'Image);
+         SDL.Log.Put_Debug
+           (Message =>
+              "Format   :" &
+              Obtained.Format.Sample_Size'Image & " bits/sample, " &
+              (if Obtained.Format.Is_Signed then "" else "un") & "signed " &
+              (if Obtained.Format.Is_Float then "float" else "integer") & ", " &
+              (if Obtained.Format.Is_MSB_First then "big" else "little") & " endian");
          SDL.Log.Put_Debug (Message => "Channels :" & Obtained.Channels'Image);
          SDL.Log.Put_Debug (Message => "Silence  :" & Obtained.Silence'Image);
          SDL.Log.Put_Debug (Message => "Samples  :" & Obtained.Samples'Image);
