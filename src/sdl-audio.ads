@@ -133,6 +133,8 @@ package SDL.Audio is
 
    procedure Open (Desired  : in     Audio_Spec;
                    Obtained :    out Audio_Spec);
+   pragma Obsolescent (Entity  => Open,
+                       Message => "Consider using Open (Device => ...) instead.");
 
    function Get_Number_Of_Devices (Is_Capture : in Boolean) return Natural;
    function Get_Device_Name (Index      : in Positive;
@@ -147,10 +149,14 @@ package SDL.Audio is
 
    type Status_Type is (Stopped, Playing, Paused);
    function Status return Status_Type;
+   pragma Obsolescent (Entity  => Status,
+                       Message => "Consider using Status (Device => ...) instead.");
    function Status (Device : in Device_Id)
                    return Status_Type;
 
    procedure Pause (Pause_On : in Boolean);
+   pragma Obsolescent (Entity  => Pause,
+                       Message => "Consider using Pause (Device => ...) instead.");
    procedure Pause (Device   : in Device_Id;
                     Pause_On : in Boolean);
 
@@ -176,6 +182,8 @@ package SDL.Audio is
    procedure Mix (Target : in Buffer_Type;
                   Source : in Buffer_Type;
                   Volume : in Audio_Volume);
+   pragma Obsolescent (Entity  => Mix,
+                       Message => "Consider using Mix_Format (...) instead.");
 
    procedure Mix_Format (Target : in Buffer_Type;
                          Source : in Buffer_Type;
@@ -203,9 +211,13 @@ package SDL.Audio is
    ---------------
 
    procedure Lock;
+   pragma Obsolescent (Entity  => Lock,
+                       Message => "Consider using Lock (Device => ...) instead.");
    procedure Lock (Device : in Device_Id);
 
    procedure Unlock;
+   pragma Obsolescent (Entity  => Unlock,
+                       Message => "Consider using Unlock (Device => ...) instead.");
    procedure Unlock (Device : in Device_Id);
 
    ---------------
@@ -213,6 +225,8 @@ package SDL.Audio is
    ---------------
 
    procedure Close;
+   pragma Obsolescent (Entity  => Close,
+                       Message => "Consider using Close (Device => ...) instead.");
    procedure Close (Device : in Device_Id);
 
 private
