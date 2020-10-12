@@ -174,7 +174,7 @@ package SDL.Audio is
                    Is_Capture      : in     Boolean;
                    Desired         : in     Audio_Spec;
                    Obtained        :    out Audio_Spec;
-                   Allowed_Changes : in     Integer);
+                   Allowed_Changes : in     Allowed_Changes_Flags);
 
    type Status_Type is (Stopped, Playing, Paused);
    function Status return Status_Type;

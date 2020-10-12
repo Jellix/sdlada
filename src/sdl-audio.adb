@@ -130,7 +130,7 @@ package body SDL.Audio is
                    Is_Capture      : in     Boolean;
                    Desired         : in     Audio_Spec;
                    Obtained        :    out Audio_Spec;
-                   Allowed_Changes : in     Integer)
+                   Allowed_Changes : in     Allowed_Changes_Flags)
    is
       use Interfaces.C.Strings;
       function SDL_Open_Audio_Device
@@ -138,7 +138,7 @@ package body SDL.Audio is
          Is_Capture      : in     C.int;
          Desired         : in     Audio_Spec;
          Obtained        :    out Audio_Spec;
-         Allowed_Changes : in     C.int)
+         Allowed_Changes : in     Allowed_Changes_Flags)
         return C.int with
         Import        => True,
         Convention    => C,
@@ -149,7 +149,7 @@ package body SDL.Audio is
          Is_Capture      => (if Is_Capture then 1 else 0),
          Desired         => Desired,
          Obtained        => Obtained,
-         Allowed_Changes => C.int (Allowed_Changes));
+         Allowed_Changes => Allowed_Changes);
    begin
       if Result <= 0 then
          raise Audio_Error with SDL.Error.Get;
