@@ -2,59 +2,57 @@ with SDL.Audio,
      SDL.Error,
      SDL.Log;
 
-with Interfaces.C;
 with System;
 
 procedure Audio is
-   use type SDL.Audio.Device_Index, SDL.Audio.Driver_Index;
 
    procedure List_Drivers is
    begin
       SDL.Log.Put_Debug (Message => "Checking for available audio drivers...");
 
-      for i in 0 .. SDL.Audio.Get_Num_Drivers - 1 loop
+      for i in 0 .. SDL.Audio.Get_Number_Of_Drivers - 1 loop
          SDL.Log.Put_Debug
-           (Message => "  Found: """ & SDL.Audio.Get_Driver (Index => i) & """");
+           (Message => "  Found: """ & SDL.Audio.Get_Driver_Name (Index => i) & """");
       end loop;
 
       SDL.Log.Put_Debug
         (Message =>
-           "  Current audio driver is """ & SDL.Audio.Get_Current_Driver & """");
+           "  Current audio driver is """ & SDL.Audio.Current_Driver & """");
    end List_Drivers;
 
    procedure List_Devices is
    begin
       SDL.Log.Put_Debug (Message => "Checking for audio devices...");
 
-      for i in 0 .. SDL.Audio.Get_Num_Devices - 1 loop
+      for i in 0 .. SDL.Audio.Get_Number_Of_Devices (Is_Capture => False) - 1 loop
          SDL.Log.Put_Debug
-           (Message => "  Found """ & SDL.Audio.Device_Name (Index => i) & """");
+           (Message => "  Found """ & SDL.Audio.Get_Device_Name (Index      => i,
+                                                                 Is_Capture => False) & """");
       end loop;
 
       SDL.Log.Put_Debug (Message => "Checking for recording devices...");
 
-      for i in 0 .. SDL.Audio.Get_Num_Devices (Is_Capture => SDL.Audio.True) - 1 loop
+      for i in 0 .. SDL.Audio.Get_Number_Of_Devices (Is_Capture => True) - 1 loop
          SDL.Log.Put_Debug
            (Message =>
               "  Found """ &
-              SDL.Audio.Device_Name (Index      => i,
-                                     Is_Capture => SDL.Audio.True) & """");
+              SDL.Audio.Get_Device_Name (Index      => i,
+                                         Is_Capture => True) & """");
       end loop;
    end List_Devices;
 
-   procedure Open_Device (Frequency : in Interfaces.C.int;
-                          Format    : in SDL.Audio.Format_Id;
-                          Channels  : in Interfaces.Unsigned_8)
+   procedure Open_Device (Frequency : in SDL.Audio.Sample_Rate;
+                          Format    : in SDL.Audio.Audio_Format;
+                          Channels  : in SDL.Audio.Channel_Count)
    is
-      function Format_Image (Value : in SDL.Audio.Format_Id) return String is
-        (Value.Sample_Size'Image & " bits/sample, " &
-         (if Value.Is_Signed then "" else "un") & "signed " &
-         (if Value.Is_Float then "float" else "integer") & ", " &
-         (if Value.Is_MSB_First then "big" else "little") & " endian");
+      function Format_Image (Value : in SDL.Audio.Audio_Format) return String is
+        (Value.Bits'Image & " bits/sample, " &
+         (if Value.Signed then "" else "un") & "signed " &
+         (if Value.Float then "float" else "integer") & ", " &
+         (if Value.Big_Endian then "big" else "little") & " endian");
 
       Obtained : SDL.Audio.Audio_Spec;
       Device   : SDL.Audio.Device_Id;
-      use type SDL.Audio.Device_Id;
    begin
       SDL.Log.Put_Debug
         (Message =>
@@ -63,26 +61,23 @@ procedure Audio is
            Format_Image (Value => Format) & "," &
            Channels'Image & " channels.");
 
-      SDL.Audio.Open
-        (Desired         => SDL.Audio.Audio_Spec'(Frequency => Frequency,
-                                                  Format    => Format,
-                                                  Channels  => Channels,
-                                                  Silence   => 123,
-                                                  Samples   => 512,
-                                                  Padding   => <>,
-                                                  Size      => <>,
-                                                  Callback  => null,
-                                                  User_Data => System.Null_Address),
-         Obtained        => Obtained,
-         Device_Name     => "",
-         Is_Capture      => SDL.Audio.False,
-         Allowed_Changes => SDL.Audio.Allow_Any_Change,
-         Device          => Device);
+      begin
+         SDL.Audio.Open
+           (Desired         => SDL.Audio.Audio_Spec'(Frequency => Frequency,
+                                                     Format    => Format,
+                                                     Channels  => Channels,
+                                                     Silence   => 123,
+                                                     Samples   => 512,
+                                                     Padding   => <>,
+                                                     Size      => <>,
+                                                     Callback  => null,
+                                                     Userdata  => System.Null_Address),
+            Obtained        => Obtained,
+            Device_Name     => "",
+            Is_Capture      => False,
+            Allowed_Changes => SDL.Audio.Allow_Any_Change,
+            Device          => Device);
 
-      if Device = SDL.Audio.No_Audio_Device then
-         SDL.Log.Put_Error (Message => SDL.Error.Get);
-         SDL.Log.Put_Debug (Message => "Call failed, did not get a device id!");
-      else
          SDL.Log.Put_Debug (Message => "Obtained audio data:");
          SDL.Log.Put_Debug (Message => "Frequency:" & Obtained.Frequency'Image);
          SDL.Log.Put_Debug
@@ -93,7 +88,11 @@ procedure Audio is
          SDL.Log.Put_Debug (Message => "Size     :" & Obtained.Size'Image);
 
          SDL.Audio.Close (Device => Device);
-      end if;
+      exception
+         when SDL.Audio.Audio_Error =>
+            SDL.Log.Put_Error (Message => SDL.Error.Get);
+            SDL.Log.Put_Debug (Message => "Call failed, did not get a device id!");
+      end;
    end Open_Device;
 
 begin
@@ -103,13 +102,13 @@ begin
       List_Drivers;
       List_Devices;
       Open_Device (Frequency => 22_500,
-                   Format    => SDL.Audio.Unsigned_8,
+                   Format    => SDL.Audio.Audio_U8,
                    Channels  => 1);
       Open_Device (Frequency => 48_000,
-                   Format    => SDL.Audio.Unsigned_16_LE,
+                   Format    => SDL.Audio.Audio_U16_LSB,
                    Channels  => 6);
       Open_Device (Frequency => 48_000,
-                   Format    => SDL.Audio.Signed_16_LE,
+                   Format    => SDL.Audio.Audio_S16_LSB,
                    Channels  => 2);
    end if;
 
