@@ -22,7 +22,7 @@ package body Game.Audio is
       end record;
 
    No_Wave : constant WAV_Info :=
-               WAV_Info'(Buffer => SDL.Audio.Null_Audio,
+               WAV_Info'(Buffer => System.Null_Address,
                          Length => 0);
 
    --  Play_Info
@@ -34,7 +34,7 @@ package body Game.Audio is
       end record;
 
    Nothing : constant Play_Info :=
-               Play_Info'(Data       => SDL.Audio.Null_Audio,
+               Play_Info'(Data       => System.Null_Address,
                           Length     => 0,
                           Data_Index => 0);
 
@@ -112,9 +112,7 @@ package body Game.Audio is
 
       Last_Byte : SDL.Audio.Raw_Audio_Index;
    begin
-      if
-        User_Data.Data /= SDL.Audio.Null_Audio
-      then
+      if User_Data.Data /= System.Null_Address then
          --  Now fill buffer with audio data and update the audio index.
          Last_Byte :=
            SDL.Audio.Raw_Audio_Index'Min (User_Data.Length - User_Data.Data_Index,
@@ -126,9 +124,7 @@ package body Game.Audio is
 
          User_Data.Data_Index := User_Data.Data_Index + Last_Byte;
 
-         if
-           User_Data.Data_Index >= User_Data.Length
-         then
+         if User_Data.Data_Index >= User_Data.Length then
             User_Data := Nothing;
          end if;
       else
@@ -205,9 +201,7 @@ package body Game.Audio is
       SDL.Audio.Lock (Device => Audio_Device);
 
       --  Only write new buffer if previous one has played already.
-      if
-        Currently_Playing.Data = SDL.Audio.Null_Audio
-      then
+      if Currently_Playing.Data = System.Null_Address then
          Currently_Playing :=
            Play_Info'(Data       => WAV_Ping.Buffer,
                       Length     => SDL.Audio.Raw_Audio_Count (WAV_Ping.Length),
@@ -226,9 +220,7 @@ package body Game.Audio is
       SDL.Audio.Lock (Device => Audio_Device);
 
       --  Only write new buffer if previous one has played already.
-      if
-        Currently_Playing.Data = SDL.Audio.Null_Audio
-      then
+      if Currently_Playing.Data = System.Null_Address then
          Currently_Playing :=
            Play_Info'(Data       => WAV_Pong.Buffer,
                       Length     => SDL.Audio.Raw_Audio_Count (WAV_Pong.Length),
