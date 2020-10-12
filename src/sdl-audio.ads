@@ -421,16 +421,15 @@ package SDL.Audio with Preelaborate => True is
    --  need to free the audio buffer with Free_WAV when you are done
    --  with it.
    --
-   --  This function returns NULL and sets the SDL error message if the
-   --  wave file cannot be opened, uses an unknown data format, or is
+   --  This function raises RW_Ops_Error, if the wave file cannot be
+   --  opened, or Audio_Error if it uses an unknown data format, or is
    --  corrupt. Currently raw, MS-ADPCM and IMA-ADPCM WAVE files are
    --  supported.
    ---------------------------------------------------------------------
    procedure Load_WAV (File_Name : in     String;
                        Spec      :    out Audio_Spec;
                        Audio_Buf :    out Audio_Buffer;
-                       Audio_Len :    out Interfaces.Unsigned_32;
-                       Success   :    out Boolean);
+                       Audio_Len :    out Interfaces.Unsigned_32);
 
    ---------------------------------------------------------------------
    --  Free_WAV

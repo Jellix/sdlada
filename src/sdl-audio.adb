@@ -21,8 +21,6 @@
 --     distribution.
 --------------------------------------------------------------------------------------------------------------------
 
-with Ada.Exceptions;
-
 with Interfaces.C.Strings;
 
 with SDL.Error,
@@ -59,8 +57,7 @@ package body SDL.Audio is
    procedure Load_WAV (File_Name : in     String;
                        Spec      :    out Audio_Spec;
                        Audio_Buf :    out Audio_Buffer;
-                       Audio_Len :    out Interfaces.Unsigned_32;
-                       Success   :    out Boolean) is
+                       Audio_Len :    out Interfaces.Unsigned_32) is
       ------------------------------------------------------------------
       --  C_Load_WAV
       ------------------------------------------------------------------
@@ -73,23 +70,20 @@ package body SDL.Audio is
         Import        => True,
         Convention    => C,
         External_Name => "SDL_LoadWAV_RW";
+      File_Ops : constant RWops.RWops :=
+        RWops.From_File (File_Name => File_Name,
+                         Mode      => RWops.Read_Binary);
+      --  May raise RWOps_Error
    begin
-      declare
-         File_Ops : constant RWops.RWops :=
-           RWops.From_File (File_Name => File_Name,
-                            Mode      => RWops.Read_Binary);
-      begin
-         Success :=
-           C_Load_WAV (Src      => File_Ops,
-                       Free_Src => True,
-                       Spec     => Spec'Address,
-                       Buf      => Audio_Buf'Address,
-                       Len      => Audio_Len'Address) /= null;
-      end;
-   exception
-      when E : SDL.RWops.RWops_Error =>
-         SDL.Error.Set (Ada.Exceptions.Exception_Message (E));
-         Success := False;
+      if
+        C_Load_WAV (Src      => File_Ops,
+                    Free_Src => True,
+                    Spec     => Spec'Address,
+                    Buf      => Audio_Buf'Address,
+                    Len      => Audio_Len'Address) = null
+      then
+         raise Audio_Error with SDL.Error.Get;
+      end if;
    end Load_WAV;
 
    ---------------------------------------------------------------------
