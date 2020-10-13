@@ -53,7 +53,7 @@ LIB_NAME	=	lib/libadasdl.a
 
 .PHONY: sdlada.gpr test_maths_build.gpr test.gpr demos.gpr tests_audio.gpr tools.gpr
 
-all: tools $(LIB_NAME) tests tests_audio demos
+all: tools $(LIB_NAME) tests demos
 
 # TODO: Fix the compiler so we actually get shared libs!
 #
