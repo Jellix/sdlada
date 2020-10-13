@@ -10,7 +10,7 @@ procedure Audio is
    begin
       SDL.Log.Put_Debug (Message => "Checking for available audio drivers...");
 
-      for i in 0 .. SDL.Audio.Get_Number_Of_Drivers - 1 loop
+      for i in 1 .. SDL.Audio.Get_Number_Of_Drivers loop
          SDL.Log.Put_Debug
            (Message => "  Found: """ & SDL.Audio.Get_Driver_Name (Index => i) & """");
       end loop;
@@ -24,7 +24,7 @@ procedure Audio is
    begin
       SDL.Log.Put_Debug (Message => "Checking for audio devices...");
 
-      for i in 0 .. SDL.Audio.Get_Number_Of_Devices (Is_Capture => False) - 1 loop
+      for i in 1 .. SDL.Audio.Get_Number_Of_Devices (Is_Capture => False) loop
          SDL.Log.Put_Debug
            (Message => "  Found """ & SDL.Audio.Get_Device_Name (Index      => i,
                                                                  Is_Capture => False) & """");
@@ -32,7 +32,7 @@ procedure Audio is
 
       SDL.Log.Put_Debug (Message => "Checking for recording devices...");
 
-      for i in 0 .. SDL.Audio.Get_Number_Of_Devices (Is_Capture => True) - 1 loop
+      for i in 1 .. SDL.Audio.Get_Number_Of_Devices (Is_Capture => True) loop
          SDL.Log.Put_Debug
            (Message =>
               "  Found """ &
