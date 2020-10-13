@@ -7,41 +7,33 @@ with Ada.Command_Line,
 
 with Interfaces;
 
-with System;
-
 with SDL.Audio.Callbacks,
+     SDL.Audio.Frames,
      SDL.Error,
      SDL.RWops;
 
 package body Game.Audio is
 
-   --  WAV_Info
-   type WAV_Info is
-      record
-         Buffer : SDL.Audio.Audio_Buffer;
-         Length : Interfaces.Unsigned_32;
-      end record;
+   package Samples is new
+     SDL.Audio.Frames.Buffer_Overlays (Sample_Type  => Interfaces.Unsigned_16,
+                                       Frame_Config => SDL.Audio.Frames.Config_Mono);
 
-   No_Wave : constant WAV_Info :=
-               WAV_Info'(Buffer => System.Null_Address,
-                         Length => 0);
+   No_Wave : constant SDL.Audio.Buffer_Type := SDL.Audio.Null_Buffer;
 
    --  Play_Info
    type Play_Info is
       record
-         Data       : SDL.Audio.Audio_Buffer;
-         Length     : SDL.Audio.Raw_Audio_Index;
-         Data_Index : SDL.Audio.Raw_Audio_Index;
+         Data  : SDL.Audio.Buffer_Type;
+         Index : Samples.Frame_Index;
       end record;
 
    Nothing : constant Play_Info :=
-               Play_Info'(Data       => System.Null_Address,
-                          Length     => 0,
-                          Data_Index => 0);
+               Play_Info'(Data  => SDL.Audio.Null_Buffer,
+                          Index => 0);
 
    --  Loaded WAVs.
-   WAV_Ping : WAV_Info;
-   WAV_Pong : WAV_Info;
+   WAV_Ping : SDL.Audio.Buffer_Type;
+   WAV_Pong : SDL.Audio.Buffer_Type;
 
    --  Which is currently playing.
    Currently_Playing : Play_Info;
@@ -63,14 +55,13 @@ package body Game.Audio is
       WAV_Spec : SDL.Audio.Audio_Spec;
    begin
       begin
-         SDL.Audio.Load_WAV (File_Name =>
+         SDL.Audio.Load_WAV (Filename =>
                                Ada.Directories.Compose
                                  (Containing_Directory => Data_Dir,
                                   Name                 => "ping",
                                   Extension            => "wav"),
                              Spec      => WAV_Spec,
-                             Audio_Buf => WAV_Ping.Buffer,
-                             Audio_Len => WAV_Ping.Length);
+                             Buffer    => WAV_Ping);
       exception
          when SDL.RWops.RWops_Error | SDL.Audio.Audio_Error =>
             Ada.Text_IO.Put_Line (File => Ada.Text_IO.Standard_Error,
@@ -80,14 +71,13 @@ package body Game.Audio is
       end;
 
       begin
-         SDL.Audio.Load_WAV (File_Name =>
+         SDL.Audio.Load_WAV (Filename =>
                                Ada.Directories.Compose
                                  (Containing_Directory => Data_Dir,
                                   Name                 => "pong",
                                   Extension            => "wav"),
                              Spec      => WAV_Spec,
-                             Audio_Buf => WAV_Pong.Buffer,
-                             Audio_Len => WAV_Pong.Length);
+                             Buffer    => WAV_Pong);
       exception
          when SDL.RWops.RWops_Error | SDL.Audio.Audio_Error =>
             Ada.Text_IO.Put_Line (File => Ada.Text_IO.Standard_Error,
@@ -101,34 +91,46 @@ package body Game.Audio is
    --  My_Callback
    ---------------------------------------------------------------------
    procedure My_Callback (User_Data : in out Play_Info;
-                          Stream    :    out SDL.Audio.Raw_Audio)
+                          Stream    : in     SDL.Audio.Buffer_Type)
    is
-      use type SDL.Audio.Audio_Buffer;
-      use type SDL.Audio.Raw_Audio_Index;
+      use type SDL.Audio.Buffer_Type;
 
-      In_Buf   : SDL.Audio.Raw_Audio (0 .. User_Data.Length - 1);
-      for In_Buf'Address use System.Address (User_Data.Data);
-
-      Last_Byte : SDL.Audio.Raw_Audio_Index;
+      --  buffer indices are 1 based, so we can use Last_Index like Length.
+      Last_Frame : constant Samples.Frame_Index :=
+        Samples.Frame_Index'Min (Samples.Last_Index (User_Data.Data) - User_Data.Index,
+                                 Samples.Last_Index (Stream));
    begin
-      if User_Data.Data /= System.Null_Address then
+      if User_Data.Data /= SDL.Audio.Null_Buffer then
          --  Now fill buffer with audio data and update the audio index.
-         Last_Byte :=
-           SDL.Audio.Raw_Audio_Index'Min (User_Data.Length - User_Data.Data_Index,
-                                          Stream'Length);
+         for Frame in 1 .. Last_Frame loop
+            Samples.Update (Buffer => Stream,
+                            Frame  => Frame,
+                            Value  => Samples.Value (Buffer => User_Data.Data,
+                                                     Frame  => Frame + User_Data.Index));
+         end loop;
 
-         Stream (Stream'First .. Last_Byte - 1) :=
-           In_Buf (User_Data.Data_Index .. User_Data.Data_Index + Last_Byte - 1);
-         Stream (Last_Byte     .. Stream'Last) := (others => 0);
+         User_Data.Index := User_Data.Index + Last_Frame;
 
-         User_Data.Data_Index := User_Data.Data_Index + Last_Byte;
-
-         if User_Data.Data_Index >= User_Data.Length then
+         if User_Data.Index >= Samples.Last_Index (User_Data.Data) then
             User_Data := Nothing;
          end if;
+
+         --  If the input buffer was too short fill the remaining buffer with
+         --  "silence".
+         for Frame in Last_Frame + 1 .. Samples.Last_Index (Stream) loop
+            Samples.Update (Buffer => Stream,
+                            Frame  => Frame,
+                            Value  => Samples.Frame_Type'(others => 16#0000#));
+         end loop;
       else
          --  Fill target buffer with silence.
-         Stream := SDL.Audio.Raw_Audio'(Stream'Range => 0);
+         for Frame in
+           Samples.First_Index (Buffer => Stream) .. Samples.Last_Index (Buffer => Stream)
+         loop
+            Samples.Update (Buffer => Stream,
+                            Frame  => Frame,
+                            Value  => Samples.Frame_Type'(others => 16#0000#));
+         end loop;
       end if;
    end My_Callback;
 
@@ -140,42 +142,46 @@ package body Game.Audio is
    ---------------------------------------------------------------------
    procedure Initialize is
       Required : SDL.Audio.Audio_Spec;
-      use type SDL.Audio.Device_Id,
-               SDL.Audio.Device_Index;
    begin
       Currently_Playing := Nothing;
 
       Load_Data;
       Required :=
         SDL.Audio.Audio_Spec'(Frequency => 48_000,
-                              Format    => SDL.Audio.Signed_16_LE,
+                              Format    => SDL.Audio.Audio_S16_LSB,
                               Channels  => 1,
                               Silence   => 0,
                               Samples   => 512,
                               Padding   => 0,
                               Size      => 0,
                               Callback  => Audio_Callback.C_Callback'Access,
-                              User_Data => SDL.Audio.User_Data_Ptr (Currently_Playing'Address));
+                              Userdata  => Currently_Playing'Address);
 
       --  SDL2 API. Enumerate and report devices.
-      for D in 0 .. SDL.Audio.Get_Num_Devices - 1 loop
+      for D in 1 .. SDL.Audio.Get_Number_Of_Devices (Is_Capture => False) loop
          Ada.Text_IO.Put_Line
            ("Audio device """ &
-              SDL.Audio.Device_Name (Index      => D,
-                                     Is_Capture => SDL.Audio.False) & """ found.");
+              SDL.Audio.Get_Device_Name (Index      => D,
+                                         Is_Capture => False) & """ found.");
       end loop;
 
-      SDL.Audio.Open (Required => Required,
-                      Device   => Audio_Device);
-      pragma Unreferenced (Required);
-
-      if Audio_Device = 0 then
-         Ada.Text_IO.Put_Line (File => Ada.Text_IO.Standard_Error,
-                               Item => "Failed to initialize audio");
-      else
+      declare
+         Obtained : SDL.Audio.Audio_Spec;
+      begin
+         SDL.Audio.Open (Device          => Audio_Device,
+                         Device_Name     => "",
+                         Is_Capture      => False,
+                         Desired         => Required,
+                         Obtained        => Obtained,
+                         Allowed_Changes => SDL.Audio.Allow_No_Change);
          SDL.Audio.Pause (Device   => Audio_Device,
-                          Pause_On => SDL.Audio.False);
-      end if;
+                          Pause_On => False);
+      exception
+         when SDL.Audio.Audio_Error =>
+            Ada.Text_IO.Put_Line (File => Ada.Text_IO.Standard_Error,
+                                  Item => "Failed to initialize audio");
+      end;
+      pragma Unreferenced (Required);
    end Initialize;
 
    ---------------------------------------------------------------------
@@ -184,27 +190,26 @@ package body Game.Audio is
    procedure Finalize is
    begin
       SDL.Audio.Pause (Device   => Audio_Device,
-                       Pause_On => SDL.Audio.True);
+                       Pause_On => True);
       SDL.Audio.Close (Device => Audio_Device);
 
-      SDL.Audio.Free_WAV (Audio_Buf => WAV_Ping.Buffer);
-      SDL.Audio.Free_WAV (Audio_Buf => WAV_Pong.Buffer);
+      SDL.Audio.Free_WAV (Buffer => WAV_Ping);
+      SDL.Audio.Free_WAV (Buffer => WAV_Pong);
    end Finalize;
 
    ---------------------------------------------------------------------
    --  Play_Ping
    ---------------------------------------------------------------------
    procedure Play_Ping is
-      use type SDL.Audio.Audio_Buffer;
+      use type SDL.Audio.Buffer_Type;
    begin
       SDL.Audio.Lock (Device => Audio_Device);
 
       --  Only write new buffer if previous one has played already.
-      if Currently_Playing.Data = System.Null_Address then
+      if Currently_Playing.Data = SDL.Audio.Null_Buffer then
          Currently_Playing :=
-           Play_Info'(Data       => WAV_Ping.Buffer,
-                      Length     => SDL.Audio.Raw_Audio_Count (WAV_Ping.Length),
-                      Data_Index => 0);
+           Play_Info'(Data   => WAV_Ping,
+                      Index  => 0);
       end if;
 
       SDL.Audio.Unlock (Device => Audio_Device);
@@ -214,16 +219,15 @@ package body Game.Audio is
    --  Play_Pong
    ---------------------------------------------------------------------
    procedure Play_Pong is
-      use type SDL.Audio.Audio_Buffer;
+      use type SDL.Audio.Buffer_Type;
    begin
       SDL.Audio.Lock (Device => Audio_Device);
 
       --  Only write new buffer if previous one has played already.
-      if Currently_Playing.Data = System.Null_Address then
+      if Currently_Playing.Data = SDL.Audio.Null_Buffer then
          Currently_Playing :=
-           Play_Info'(Data       => WAV_Pong.Buffer,
-                      Length     => SDL.Audio.Raw_Audio_Count (WAV_Pong.Length),
-                      Data_Index => 0);
+           Play_Info'(Data  => WAV_Pong,
+                      Index => 0);
       end if;
 
       SDL.Audio.Unlock (Device => Audio_Device);
