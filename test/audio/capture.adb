@@ -20,7 +20,7 @@ procedure Capture is
       Silence   => 0,
       Size      => 0,
       Callback  => null,
-      Userdata  => 0,
+      Userdata  => SDL.Audio.No_User_Data,
       Padding   => 0);
 
    Device_Capture    : Device_Id;
