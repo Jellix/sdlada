@@ -3,79 +3,123 @@
 
 with Ada.Real_Time;
 
-with SDL.Video.Palettes,
+with SDL.Video.Displays,
+     SDL.Video.Palettes,
      SDL.Video.Rectangles;
 
 package Game.Constants is
 
    use type SDL.Dimension;
 
-   --  Frame/update rate.
-   Game_Speed : constant Ada.Real_Time.Time_Span := Ada.Real_Time.Milliseconds (10);
+   --  Most constants depend on the screen resolution. To avoid recalculating
+   --  them over and over again, we provide functionality to calculate them
+   --  once and for all once the screen size is known.
+   type Screen_Constants is
+      record
+         --  Screen independent.
+         Game_Speed       : Ada.Real_Time.Time_Span;    --  Frame/update rate.
+         Background_Color : SDL.Video.Palettes.Colour;
+         Line_Colour      : SDL.Video.Palettes.Colour;
+         Ball_Colour      : SDL.Video.Palettes.Colour;
+         Paddle_Colour    : SDL.Video.Palettes.Colour;
 
-   --  Virtual screen size.
-   Screen_Width  : constant := 1600;
-   Screen_Height : constant := 960;
+         --  Minimum score and points difference to reach winning condition.
+         Min_Winning_Score : Positive;
+         Min_Difference    : Positive;
 
-   Background_Color : SDL.Video.Palettes.Colour :=
+         --  Screen dependent.
+         Left_Goal      : SDL.Dimension;   -- X coordinate of left goal area
+         Right_Goal     : SDL.Dimension;   -- X coordinate of right goal area
+         Ball_Size      : SDL.Dimension;   -- Size of ball sqircle.
+         Paddle_Width   : SDL.Dimension;   -- Width of a paddle.
+         Paddle_Height  : SDL.Dimension;   -- Height (length) of a paddle.
+         Ball_Initial   : SDL.Coordinates; -- Starting position of ball.
+         Ball_Bounds    : SDL.Video.Rectangles.Rectangle; --  Ball movement area.
+         Paddle_Bounds  : SDL.Video.Rectangles.Rectangle; -- movement bounds of paddle
+         Threshold      : SDL.Dimension; --  Minimum position difference before computer moves its paddle.
+         Ball_Speed     : Float;
+         Computer_Speed : Float;
+         Player_Speed   : Float;
+      end record;
+
+   ---------------------------------------------------------------------
+   --  Get
+   --
+   --  Retrieve all video mode specific constants. See Screen_Constants
+   --  type.
+   ---------------------------------------------------------------------
+   function Get (Mode : in SDL.Video.Displays.Mode) return Screen_Constants;
+
+private
+
+   Black : constant SDL.Video.Palettes.Colour :=
      SDL.Video.Palettes.Colour'(Red   => 16#00#,
                                 Green => 16#00#,
                                 Blue  => 16#00#,
                                 Alpha => 16#FF#);
 
-   Line_Colour : SDL.Video.Palettes.Colour :=
+   Gray : constant SDL.Video.Palettes.Colour :=
      SDL.Video.Palettes.Colour'(Red   => 16#80#,
                                 Green => 16#80#,
                                 Blue  => 16#80#,
                                 Alpha => 16#FF#);
 
-   Ball_Colour : SDL.Video.Palettes.Colour :=
+   White : constant SDL.Video.Palettes.Colour :=
      SDL.Video.Palettes.Colour'(Red   => 16#FF#,
                                 Green => 16#FF#,
                                 Blue  => 16#FF#,
                                 Alpha => 16#FF#);
 
-   Paddle_Colour : SDL.Video.Palettes.Colour :=
-     SDL.Video.Palettes.Colour'(Red   => 16#FF#,
-                                Green => 16#FF#,
-                                Blue  => 16#FF#,
-                                Alpha => 16#FF#);
+   function Left_Goal (Mode : in SDL.Video.Displays.Mode) return SDL.Dimension is
+     (Mode.Width / 16);
 
-   --  Ball and paddle sizes.
-   Ball_Size     : constant := Screen_Width  / 80;
-   Paddle_Width  : constant := Screen_Width  / 80;
-   Paddle_Height : constant := Screen_Height / 8;
+   function Right_Goal (Mode : in SDL.Video.Displays.Mode) return SDL.Dimension is
+     (Mode.Width - Left_Goal (Mode));
 
-   Ball_Initial : constant SDL.Coordinates :=
-     SDL.Coordinates'(X => SDL.Dimension (Screen_Width / 2  - Ball_Size / 2),
-                      Y => SDL.Dimension (Screen_Height / 2 - Ball_Size / 2));
+   function Ball_Size (Mode : in SDL.Video.Displays.Mode) return SDL.Dimension is
+     (Mode.Width / 80);
+
+   function Paddle_Width (Mode : in SDL.Video.Displays.Mode) return SDL.Dimension is
+     (Mode.Width / 80);
+
+   function Paddle_Height (Mode : in SDL.Video.Displays.Mode) return SDL.Dimension is
+     (Mode.Height / 8);
+
+   function Ball_Initial (Mode : in SDL.Video.Displays.Mode) return SDL.Coordinates is
+     (SDL.Coordinates'(X => Mode.Width  / 2 - Ball_Size (Mode) / 2,
+                       Y => Mode.Height / 2 - Ball_Size (Mode) / 2));
 
    --  Ball can use the full screen
-   Ball_Bounds : constant SDL.Video.Rectangles.Rectangle :=
-     SDL.Video.Rectangles.Rectangle'(X      => 0,
-                                     Y      => 0,
-                                     Width  => Screen_Width,
-                                     Height => Screen_Height);
+   function Ball_Bounds (Mode : in SDL.Video.Displays.Mode) return SDL.Video.Rectangles.Rectangle is
+     (SDL.Video.Rectangles.Rectangle'(X      => 0,
+                                      Y      => 0,
+                                      Width  => Mode.Width,
+                                      Height => Mode.Height));
 
-   Border_Left : constant := Screen_Width / 80;
-   Border_Top  : constant := Screen_Height / 10;
+   function Border_Left (Mode : in SDL.Video.Displays.Mode) return SDL.Dimension is
+     (Mode.Width / 80);
 
-   Paddle_Bounds : constant SDL.Video.Rectangles.Rectangle :=
-     SDL.Video.Rectangles.Rectangle'(X      => Border_Left,
-                                     Y      => Border_Top,
-                                     Width  => Screen_Width  - 2 * Border_Left,
-                                     Height => Screen_Height - 2 * Border_Top);
+   function Border_Top (Mode : in SDL.Video.Displays.Mode) return SDL.Dimension is
+     (Mode.Height / 10);
+
+   function Paddle_Bounds (Mode : in SDL.Video.Displays.Mode) return SDL.Video.Rectangles.Rectangle is
+      (SDL.Video.Rectangles.Rectangle'(X      => Border_Left (Mode),
+                                       Y      => Border_Top (Mode),
+                                       Width  => Mode.Width  - 2 * Border_Left (Mode),
+                                       Height => Mode.Height - 2 * Border_Top (Mode)));
 
    --  Minimum position difference before computer moves its paddle.
-   Threshold     : constant := Paddle_Height / 4;
+   function Threshold (Mode : in SDL.Video.Displays.Mode) return SDL.Dimension is
+     (Paddle_Height (Mode) / 4);
 
    --  Speed constants for movement.
-   Ball_Speed     : constant Float := Float (Screen_Width) / 160.0;
-   Computer_Speed : constant Float := Float (Screen_Height) / 50.0;
-   Player_Speed   : constant Float := Float (Screen_Height) / 50.0;
+   function Ball_Speed (Mode : in SDL.Video.Displays.Mode) return Float is
+     (Float (Mode.Width) / 160.0);
 
-   --  Minimum score and points difference to reach winning condition.
-   Min_Winning_Score : constant := 11;
-   Min_Difference    : constant :=  2;
+   function Computer_Speed (Mode : in SDL.Video.Displays.Mode) return Float is
+     (Float (Mode.Height) / 50.0);
+
+   function Player_Speed (Mode : in SDL.Video.Displays.Mode) return Float is
+     (Float (Mode.Height) / 50.0);
 
 end Game.Constants;
