@@ -119,6 +119,10 @@ package SDL.Audio is
    type Byte_Count  is new Unsigned_32;
    type Buffer_Base is new System.Address;
 
+   --  Define a convenience constant for when we don't pass userdata through the
+   --  callbacks.
+   No_User_Data : constant System.Address := System.Null_Address;
+
    package Internal is
       --  This callback should never be directly used by the user of the
       --  library.  Instead, an instance of SDL.Audio.Callbacks should be
