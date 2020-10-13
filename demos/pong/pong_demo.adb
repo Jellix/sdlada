@@ -8,6 +8,7 @@ with Ada.Exceptions,
 with SDL.Error,
      SDL.Events.Events,
      SDL.Events.Keyboards,
+     SDL.Video.Displays,
      SDL.Video.Rectangles,
      SDL.Video.Renderers.Makers,
      SDL.Video.Windows.Makers;
@@ -26,11 +27,8 @@ use type SDL.Dimension,
 
 procedure Pong_Demo is
 
-   package GC renames Game.Constants;
-
-   --  Some useful game related constants.
-   Left_Goal  : constant := GC.Screen_Width / 16;
-   Right_Goal : constant := GC.Screen_Width - Left_Goal;
+   GC           : Game.Constants.Screen_Constants;
+   Game_Display : SDL.Video.Displays.Mode;
 
    type Object_Ref  is access all Pong.Display_Object'Class;
    type Object_List is array (Natural range <>) of Object_Ref;
@@ -46,40 +44,40 @@ procedure Pong_Demo is
       Renderer.Draw
         (Line =>
            SDL.Video.Rectangles.Line_Segment'
-             (Start  => SDL.Coordinates'(X => Left_Goal,
+             (Start  => SDL.Coordinates'(X => GC.Left_Goal,
                                          Y => 0),
-              Finish => SDL.Coordinates'(X => Left_Goal,
-                                         Y => GC.Screen_Height - 1)));
+              Finish => SDL.Coordinates'(X => GC.Left_Goal,
+                                         Y => Game_Display.Height - 1)));
       Renderer.Draw
         (Line =>
            SDL.Video.Rectangles.Line_Segment'
-             (Start  => SDL.Coordinates'(X => Right_Goal,
+             (Start  => SDL.Coordinates'(X => GC.Right_Goal,
                                          Y => 0),
-              Finish => SDL.Coordinates'(X => Right_Goal,
-                                         Y => GC.Screen_Height - 1)));
+              Finish => SDL.Coordinates'(X => GC.Right_Goal,
+                                         Y => Game_Display.Height - 1)));
 
       --  Draw middle lines.
       Renderer.Draw
         (Line =>
            SDL.Video.Rectangles.Line_Segment'
-             (Start  => SDL.Coordinates'(X => GC.Screen_Width / 2,
+             (Start  => SDL.Coordinates'(X => Game_Display.Width / 2,
                                          Y => 0),
-              Finish => SDL.Coordinates'(X => GC.Screen_Width / 2,
-                                         Y => GC.Screen_Height - 1)));
+              Finish => SDL.Coordinates'(X => Game_Display.Width / 2,
+                                         Y => Game_Display.Height - 1)));
       Renderer.Draw
         (Line =>
            SDL.Video.Rectangles.Line_Segment'
-             (Start  => SDL.Coordinates'(X => Left_Goal,
-                                         Y => GC.Screen_Height / 2),
-              Finish => SDL.Coordinates'(X => Right_Goal,
-                                         Y => GC.Screen_Height / 2)));
+             (Start  => SDL.Coordinates'(X => GC.Left_Goal,
+                                         Y => Game_Display.Height / 2),
+              Finish => SDL.Coordinates'(X => GC.Right_Goal,
+                                         Y => Game_Display.Height / 2)));
 
       --  Draw start "circle".
       Renderer.Draw
         (Rectangle =>
            SDL.Video.Rectangles.Rectangle'
-             (X      => GC.Screen_Width / 2 - GC.Ball_Size,
-              Y      => GC.Screen_Height / 2 - GC.Ball_Size,
+             (X      => Game_Display.Width  / 2 - GC.Ball_Size,
+              Y      => Game_Display.Height / 2 - GC.Ball_Size,
               Width  => GC.Ball_Size * 2,
               Height => GC.Ball_Size * 2));
 
@@ -124,14 +122,30 @@ begin
       raise SDL_Error with SDL.Error.Get;
    end if;
 
+   --  Instead of forcing some kind of resolution, let's just use the current
+   --  display mode.
+   if
+     not SDL.Video.Displays.Current_Mode (Display => 1, -- primary display.
+                                          Target  => Game_Display)
+   then
+      raise SDL_Error with SDL.Error.Get;
+   end if;
+
+   Ada.Text_IO.Put_Line
+     (Item =>
+        "Using screen mode" &
+        Game_Display.Width'Image & " x" & Game_Display.Height'Image & " px.");
+
+   GC := Game.Constants.Get (Mode => Game_Display);
+
    begin
       SDL.Video.Windows.Makers.Create
         (Win      => Game_Window,
          Title    => "Ada/SDL Demo - Pong",
          Position => SDL.Coordinates'(X => 0,
                                       Y => 0),
-         Size     => SDL.Sizes'(Width  => GC.Screen_Width,
-                                Height => GC.Screen_Height),
+         Size     => SDL.Sizes'(Width  => Game_Display.Width,
+                                Height => Game_Display.Height),
          Flags    => SDL.Video.Windows.Full_Screen_Desktop);
    exception
       when others =>
@@ -148,8 +162,8 @@ begin
         SDL.Video.Renderers.Present_V_Sync or
         SDL.Video.Renderers.Accelerated);
    Game_Renderer.Set_Logical_Size
-     (Size => SDL.Sizes'(Width  => GC.Screen_Width,
-                         Height => GC.Screen_Height));
+     (Size => SDL.Sizes'(Width  => Game_Display.Width,
+                         Height => Game_Display.Height));
 
    Game.Audio.Initialize;
 
@@ -166,11 +180,11 @@ begin
    Smart_Ass :=
      Pong.Paddles.Create
        (Initial =>
-          SDL.Video.Rectangles.Rectangle'(X      => Left_Goal + 1,
-                                          Y      => (GC.Screen_Height / 2 -
-                                                         GC.Paddle_Height / 2),
-                                          Width  => GC.Paddle_Width,
-                                          Height => GC.Paddle_Height),
+          SDL.Video.Rectangles.Rectangle'
+            (X      => GC.Left_Goal + 1,
+             Y      => (Game_Display.Height / 2 - GC.Paddle_Height / 2),
+             Width  => GC.Paddle_Width,
+             Height => GC.Paddle_Height),
         Bounds  => GC.Paddle_Bounds,
         -- Give the human player a winning chance by restricting the movement of
         -- the computer opponent.
@@ -181,8 +195,8 @@ begin
      Pong.Paddles.Create
        (Initial =>
           SDL.Video.Rectangles.Rectangle'
-            (X      => Right_Goal - GC.Paddle_Width,
-             Y      => (GC.Screen_Height / 2 - GC.Paddle_Height / 2),
+            (X      => GC.Right_Goal - GC.Paddle_Width,
+             Y      => (Game_Display.Height / 2 - GC.Paddle_Height / 2),
              Width  => GC.Paddle_Width,
              Height => GC.Paddle_Height),
         Bounds  => GC.Ball_Bounds,
@@ -253,13 +267,9 @@ begin
          Paddle_Center : constant SDL.Dimension :=
            Smart_Ass.Position.Y + GC.Paddle_Height / 2;
       begin
-         if
-           Ball_Center - Paddle_Center < -GC.Threshold
-         then
+         if Ball_Center - Paddle_Center < -GC.Threshold then
             Smart_Ass.Set_Velocity (Vel => -1.0);
-         elsif
-           Ball_Center - Paddle_Center > GC.Threshold
-         then
+         elsif Ball_Center - Paddle_Center > GC.Threshold then
             Smart_Ass.Set_Velocity (Vel => +1.0);
          else
             Smart_Ass.Set_Velocity (Vel => 0.0);
@@ -308,14 +318,10 @@ begin
       declare
          Score_Changed : Boolean := False;
       begin
-         if
-           Ball.Position.X < Left_Goal - GC.Ball_Size
-         then
+         if Ball.Position.X < GC.Left_Goal - GC.Ball_Size then
             The_Score (Human) := The_Score (Human) + 1;
             Score_Changed := True;
-         elsif
-           Ball.Position.X > Right_Goal
-         then
+         elsif Ball.Position.X > GC.Right_Goal then
             The_Score (Computer) := The_Score (Computer) + 1;
             Score_Changed := True;
          end if;
@@ -350,12 +356,8 @@ begin
 
    Game.Audio.Finalize;
 
-   if
-     The_Score (Computer) /= The_Score (Human)
-   then
-      if
-        The_Score (Computer) > The_Score (Human)
-      then
+   if The_Score (Computer) /= The_Score (Human) then
+      if The_Score (Computer) > The_Score (Human) then
          Ada.Text_IO.Put_Line ("I WIN! YEAH!!!");
       else
          Ada.Text_IO.Put_Line ("You win. Pah.");
