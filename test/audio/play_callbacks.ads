@@ -2,7 +2,7 @@
 --
 --
 
-with SDL.Audio.Callbacks;
+with SDL.Audio.Callback;
 
 package Play_Callbacks is
    use SDL.Audio;
@@ -12,7 +12,7 @@ package Play_Callbacks is
    procedure Player (Userdata  : in out User_Data;
                      Audio_Buf : in     SDL.Audio.Buffer_Type);
 
-   package CB_Instance is new SDL.Audio.Callbacks (User_Data => User_Data,
-                                                   Callback  => Player);
+   procedure Callback is new SDL.Audio.Callback (User_Data     => User_Data,
+                                                 User_Callback => Player);
 
 end Play_Callbacks;

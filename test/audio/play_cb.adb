@@ -20,7 +20,7 @@ procedure Play_CB is
       Channels  => 2,
       Samples   => 512,
       Silence   => 0,
-      Callback  => Play_Callbacks.CB_Instance.C_Callback'Access,
+      Callback  => Play_Callbacks.Callback'Access,
       Userdata  => SDL.Audio.No_User_Data,
       Padding   => 0,
       Size      => 0);

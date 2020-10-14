@@ -21,19 +21,16 @@
 
 with SDL.Audio.Buffers;
 
-package body SDL.Audio.Callbacks is
-
-   procedure C_Callback (Data   : in System.Address;
-                         Stream : in Buffer_Base;
-                         Length : in Interfaces.C.int) is
-      Ada_User_Data : User_Data with
-        Import     => True,
-        Convention => Ada;
-      for Ada_User_Data'Address use Data;
-   begin
-      Callback (Data   => Ada_User_Data,
-                Stream => Buffers.To_Buffer (Audio_Buf => Stream,
-                                             Audio_Len => Byte_Count (Length)));
-   end C_Callback;
-
-end SDL.Audio.Callbacks;
+procedure SDL.Audio.Callback (Data   : in System.Address;
+                              Stream : in Buffer_Base;
+                              Length : in Interfaces.C.int) is
+   Ada_User_Data : User_Data with
+     Import     => True,
+     Convention => Ada;
+   for Ada_User_Data'Address use Data;
+begin
+   --  Call the actual user callback, but with a more type safe interface.
+   User_Callback (Data   => Ada_User_Data,
+                  Stream => Buffers.To_Buffer (Audio_Buf => Stream,
+                                               Audio_Len => Byte_Count (Length)));
+end SDL.Audio.Callback;

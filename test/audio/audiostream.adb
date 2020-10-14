@@ -19,7 +19,7 @@ procedure Audiostream is
      (Frequency => 48_000,
       Channels  => 2,
       Format    => Audio_S16,
-      Callback  => Audiostream_Callbacks.Callback_Instance.C_Callback'Access,
+      Callback  => Audiostream_Callbacks.Callback'Access,
       Samples   => 512,
       Silence   => 0,
       Userdata  => SDL.Audio.No_User_Data,
