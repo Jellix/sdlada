@@ -7,7 +7,7 @@ with Ada.Command_Line,
 
 with Interfaces;
 
-with SDL.Audio.Callbacks,
+with SDL.Audio.Callback,
      SDL.Audio.Frames,
      SDL.Error,
      SDL.RWops;
@@ -134,8 +134,9 @@ package body Game.Audio is
       end if;
    end My_Callback;
 
-   package Audio_Callback is new SDL.Audio.Callbacks (User_Data => Play_Info,
-                                                      Callback  => My_Callback);
+   procedure Audio_Callback is new
+     SDL.Audio.Callback (User_Data     => Play_Info,
+                         User_Callback => My_Callback);
 
    ---------------------------------------------------------------------
    --  Initialize
@@ -154,7 +155,7 @@ package body Game.Audio is
                               Samples   => 512,
                               Padding   => 0,
                               Size      => 0,
-                              Callback  => Audio_Callback.C_Callback'Access,
+                              Callback  => Audio_Callback'Access,
                               Userdata  => Currently_Playing'Address);
 
       --  SDL2 API. Enumerate and report devices.
