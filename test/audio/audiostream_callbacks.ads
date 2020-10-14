@@ -2,7 +2,7 @@
 --
 --
 
-with SDL.Audio.Callbacks,
+with SDL.Audio.Callback,
      SDL.Audio.Streams;
 
 package Audiostream_Callbacks is
@@ -12,10 +12,11 @@ package Audiostream_Callbacks is
 
    type User_Data is null record; -- No user data here.
 
-   procedure Callback (Userdata  : in out User_Data;
-                       Audio_Buf : in     SDL.Audio.Buffer_Type);
+   procedure User_Callback (Userdata  : in out User_Data;
+                            Audio_Buf : in     SDL.Audio.Buffer_Type);
 
-   package Callback_Instance is new SDL.Audio.Callbacks (User_Data => User_Data,
-                                                         Callback  => Callback);
+   procedure Callback is new
+     SDL.Audio.Callback (User_Data     => User_Data,
+                         User_Callback => User_Callback);
 
 end Audiostream_Callbacks;

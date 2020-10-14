@@ -18,22 +18,16 @@
 --     3. This notice may not be removed or altered from any source
 --     distribution.
 --------------------------------------------------------------------------------------------------------------------
---  SDL.Audio.Callbacks
+--  SDL.Audio.Callback
 --------------------------------------------------------------------------------------------------------------------
 
 generic
    type User_Data is private; --  type of data being passed in the callback
-   with procedure Callback (Data   : in out User_Data;
-                            Stream : in     Buffer_Type);
-   --  Your actual callback function being called by the wrapper declared in
-   --  the package which takes care of the conversion of User_Data.
-   --  For simplicity, audio data is handled as if it were just a bunch of
-   --  bytes. This should be sufficient for most purposes of such a callback.
-package SDL.Audio.Callbacks is
-
-   procedure C_Callback (Data   : in System.Address;
-                         Stream : in Buffer_Base;
-                         Length : in Interfaces.C.int) with
-     Convention => C;
-
-end SDL.Audio.Callbacks;
+   with procedure User_Callback (Data   : in out User_Data;
+                                 Stream : in     Buffer_Type);
+   --  This shall be your actual callback function being called by the wrapper
+   --  declared here.
+procedure SDL.Audio.Callback (Data   : in System.Address;
+                              Stream : in Buffer_Base;
+                              Length : in Interfaces.C.int) with
+  Convention => C;

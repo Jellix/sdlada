@@ -25,14 +25,14 @@ package body Audiostream_Callbacks is
       end loop;
    end Clear;
 
-   procedure Callback (Userdata  : in out User_Data;
-                       Audio_Buf : in     Buffer_Type)
+   procedure User_Callback (Userdata  : in out User_Data;
+                            Audio_Buf : in     Buffer_Type)
    is
       Got : Byte_Count;
       pragma Unreferenced (Userdata, Got);
    begin
       Clear (Audio_Buf);
       Streams.Stream_Get (Stream, Audio_Buf, Got);
-   end Callback;
+   end User_Callback;
 
 end Audiostream_Callbacks;
