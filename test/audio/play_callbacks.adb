@@ -4,24 +4,15 @@
 
 with Ada.Numerics.Elementary_Functions;
 
-with SDL.Audio.Frames;
-
 package body Play_Callbacks is
 
-   type Sample_Type is range -2**15 .. 2**15 - 1
-     with Size => 16;
-
-   package Samples is
-      new SDL.Audio.Frames.Buffer_Overlays (Sample_Type  => Sample_Type,
-                                            Frame_Config => SDL.Audio.Frames.Config_Stereo);
    N : Integer := 0;
 
    procedure Player (Userdata  : in out User_Data;
-                     Audio_Buf : in     Buffer_Type)
+                     Audio_Buf : in out Samples.Frames)
    is
       pragma Unreferenced (Userdata);
       use SDL.Audio.Frames;
-      use Samples;
       use Ada.Numerics.Elementary_Functions;
 
       Pi      : constant := Ada.Numerics.Pi;
@@ -33,7 +24,7 @@ package body Play_Callbacks is
       Phase_R : Float;
       Frame   : Samples.Frame_Type;
    begin
-      for Index in First_Index (Audio_Buf) .. Samples.Last_Index (Audio_Buf) loop
+      for Index in Audio_Buf'First .. Audio_Buf'Last loop
          N_Float := Float (N);
          Phase_L := 5.0 * Sin (2.0 * Pi * W_Phase * N_Float);
          Phase_R := 5.0 * Cos (2.0 * Pi * W_Phase * N_Float);
@@ -42,7 +33,7 @@ package body Play_Callbacks is
                                                       Cycle => 2.0 * Pi)),
             Front_Right => Sample_Type (3000.0 * Sin (2.0 * Pi * W_Right * N_Float + Phase_R,
                                                       Cycle => 2.0 * Pi)));
-         Update (Audio_Buf, Index, Value => Frame);
+         Audio_Buf (Index) := Frame;
          N := N + 1;
       end loop;
    end Player;

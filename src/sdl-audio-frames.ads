@@ -53,16 +53,27 @@ package SDL.Audio.Frames is
    package Buffer_Overlays is
 
       subtype Frame_Index is Natural;
+      --  Please note: All buffers are 1 based, so a zero index is not valid
+      --  to address a frame inside a buffer. Instead, 0 is used to communicate
+      --  an invalid index, i.e. an empty buffer.
+
       type Frame_Type is array (Frame_Config) of Sample_Type;
 
+      type Frames is array (Frame_Index range <>) of Frame_Type;
+      --  This is the type of array that holds your audio data and is mapped
+      --  on top of the buffer overlay type. See SDL.Audio.Callback for an
+      --  usage example.
+
       function First_Index (Buffer : Buffer_Type) return Frame_Index;
+      --  Always returns 1.
+
       function Last_Index  (Buffer : Buffer_Type) return Frame_Index;
-      --  TODO: function Length (Buffer : Buffer_Type) return Frame_Index;
+      --  May return 0, indicating an empty buffer, i.e. a null range.
 
       function Value (Buffer  : in Buffer_Type;
                       Frame   : in Frame_Index;
                       Channel : in Frame_Config)
-                     return Sample_Type;
+                      return Sample_Type;
 
       function Value (Buffer : in Buffer_Type;
                       Frame  : in Frame_Index)
@@ -80,7 +91,7 @@ package SDL.Audio.Frames is
       procedure Update (Buffer  : in Buffer_Type;
                         Frame   : in Frame_Index;
                         Value   : in Frame_Type);
+
    end Buffer_Overlays;
 
 end SDL.Audio.Frames;
-

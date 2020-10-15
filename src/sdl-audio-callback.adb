@@ -19,8 +19,6 @@
 --     distribution.
 --------------------------------------------------------------------------------------------------------------------
 
-with SDL.Audio.Buffers;
-
 procedure SDL.Audio.Callback (Data   : in System.Address;
                               Stream : in Buffer_Base;
                               Length : in Interfaces.C.int) is
@@ -28,9 +26,28 @@ procedure SDL.Audio.Callback (Data   : in System.Address;
      Import     => True,
      Convention => Ada;
    for Ada_User_Data'Address use Data;
+
+   --  Assertions to ensure (at least in debug mode with assertions enabled)
+   --  that frames are always full bytes (i.e. mod 8 = 0).
+   pragma Assert (Audio_Frames.Frames'Component_Size mod System.Storage_Unit  = 0);
+
+   --  We assume the buffers are contiguous (i.e. no weird padding), so the
+   --  length in Frames (the actual type of each array element) is the array's
+   --  component size divided by Storage_Unit (i.e. 8 bit).
+   Frame_Size : constant Natural := Audio_Frames.Frames'Component_Size / System.Storage_Unit;
+
+   --  Audio buffers should alway be proper multiples of two, so that the given
+   --  length in bytes is divisable by a full frame.
+   pragma Assert (Natural (Length) mod Audio_Frames.Frames'Component_Size = 0);
+
+   --  The instance of Audio_Frames gives us all the information we need about
+   --  the individual size of audio frames, so we can map them directly.
+   Ada_Audio_Frames : Audio_Frames.Frames (1 .. Natural (Length) / Frame_Size) with
+     Import => True,
+     Convention => Ada;
+   for Ada_Audio_Frames'Address use System.Address (Stream);
 begin
    --  Call the actual user callback, but with a more type safe interface.
    User_Callback (Data   => Ada_User_Data,
-                  Stream => Buffers.To_Buffer (Audio_Buf => Stream,
-                                               Audio_Len => Byte_Count (Length)));
+                  Stream => Ada_Audio_Frames);
 end SDL.Audio.Callback;

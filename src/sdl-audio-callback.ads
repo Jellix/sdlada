@@ -20,13 +20,20 @@
 --------------------------------------------------------------------------------------------------------------------
 --  SDL.Audio.Callback
 --------------------------------------------------------------------------------------------------------------------
+with SDL.Audio.Frames;
 
 generic
    type User_Data is private; --  type of data being passed in the callback
+   with package Audio_Frames is new SDL.Audio.Frames.Buffer_Overlays (<>);
+   --  The instance of the SDL.Audio.Frames.Buffer_Overlay you use for your
+   --  audio data.
    with procedure User_Callback (Data   : in out User_Data;
-                                 Stream : in     Buffer_Type);
+                                 Stream : in out Audio_Frames.Frames);
    --  This shall be your actual callback function being called by the wrapper
    --  declared here.
+   --  The Stream is declared 'in out', so that the same type of callback can be
+   --  used for both recording and playing callbacks, in practive it is either
+   --  'in' or 'out', never both.
 procedure SDL.Audio.Callback (Data   : in System.Address;
                               Stream : in Buffer_Base;
                               Length : in Interfaces.C.int) with
