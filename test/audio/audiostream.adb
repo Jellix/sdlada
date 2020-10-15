@@ -15,6 +15,8 @@ procedure Audiostream is
    use SDL.Audio;
    use SDL.Audio.Streams;
 
+   Stream   : Audio_Stream;
+
    Desired : constant Audio_Spec :=
      (Frequency => 48_000,
       Channels  => 2,
@@ -22,14 +24,13 @@ procedure Audiostream is
       Callback  => Audiostream_Callbacks.Callback'Access,
       Samples   => 512,
       Silence   => 0,
-      Userdata  => SDL.Audio.No_User_Data,
+      Userdata  => Stream'Address,
       Padding   => 0,
       Size      => 0);
 
    Obtained  : Audio_Spec;
    WAV_Spec  : Audio_Spec;
    Buffer_In : Buffer_Type;
-   Stream    : Audio_Stream renames Audiostream_Callbacks.Stream;
 begin
    if Ada.Command_Line.Argument_Count = 0 then
       Ada.Text_IO.Put_Line ("Usage: audiostream file.wav");
