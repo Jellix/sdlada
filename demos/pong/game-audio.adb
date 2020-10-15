@@ -18,6 +18,10 @@ package body Game.Audio is
      SDL.Audio.Frames.Buffer_Overlays (Sample_Type  => Interfaces.Unsigned_16,
                                        Frame_Config => SDL.Audio.Frames.Config_Mono);
 
+   Silence : constant Samples.Frame_Type := (others => 16#0000#);
+   --  FIXME: Provide the Silence value as parameter to the generic, so it is
+   --         directly available for all users of the instance.
+
    No_Wave : constant SDL.Audio.Buffer_Type := SDL.Audio.Null_Buffer;
 
    --  Play_Info
@@ -91,51 +95,50 @@ package body Game.Audio is
    --  My_Callback
    ---------------------------------------------------------------------
    procedure My_Callback (User_Data : in out Play_Info;
-                          Stream    : in     SDL.Audio.Buffer_Type)
+                          Stream    : in out Samples.Frames)
    is
       use type SDL.Audio.Buffer_Type;
-
-      --  buffer indices are 1 based, so we can use Last_Index like Length.
-      Last_Frame : constant Samples.Frame_Index :=
-        Samples.Frame_Index'Min (Samples.Last_Index (User_Data.Data) - User_Data.Index,
-                                 Samples.Last_Index (Stream));
    begin
-      if User_Data.Data /= SDL.Audio.Null_Buffer then
-         --  Now fill buffer with audio data and update the audio index.
+      if User_Data.Data = SDL.Audio.Null_Buffer then
+         --  No data available at all.
+         Stream := (others => Silence);
+         return;
+         --  This is just a performance short cut, technically the code below
+         --  handles empty buffers quite well.
+      end if;
+
+      Stream_Audio :
+      declare
+         --  Buffer indices are 1 based, so we can use Last_Index like Length.
+         --  FIXME: Make code independent from actual array bounds.
+         Last_Frame : constant Samples.Frame_Index :=
+           Samples.Frame_Index'Min
+             (Samples.Last_Index (User_Data.Data) - User_Data.Index,
+              Stream'Last);
+      begin
+         --  Fill buffer with available audio data and update the audio index.
          for Frame in 1 .. Last_Frame loop
-            Samples.Update (Buffer => Stream,
-                            Frame  => Frame,
-                            Value  => Samples.Value (Buffer => User_Data.Data,
-                                                     Frame  => Frame + User_Data.Index));
+            Stream (Frame) := Samples.Value (Buffer => User_Data.Data,
+                                             Frame  => Frame + User_Data.Index);
          end loop;
-
-         User_Data.Index := User_Data.Index + Last_Frame;
-
-         if User_Data.Index >= Samples.Last_Index (User_Data.Data) then
-            User_Data := Nothing;
-         end if;
 
          --  If the input buffer was too short fill the remaining buffer with
          --  "silence".
-         for Frame in Last_Frame + 1 .. Samples.Last_Index (Stream) loop
-            Samples.Update (Buffer => Stream,
-                            Frame  => Frame,
-                            Value  => Samples.Frame_Type'(others => 16#0000#));
-         end loop;
-      else
-         --  Fill target buffer with silence.
-         for Frame in
-           Samples.First_Index (Buffer => Stream) .. Samples.Last_Index (Buffer => Stream)
-         loop
-            Samples.Update (Buffer => Stream,
-                            Frame  => Frame,
-                            Value  => Samples.Frame_Type'(others => 16#0000#));
-         end loop;
-      end if;
+         Stream (Last_Frame + 1 .. Stream'Last) := (others => Silence);
+
+         --  Update data index from user data.
+         User_Data.Index := User_Data.Index + Last_Frame;
+
+         if User_Data.Index >= Samples.Last_Index (User_Data.Data) then
+            --  Nothing more to stream...
+            User_Data := Nothing;
+         end if;
+      end Stream_Audio;
    end My_Callback;
 
    procedure Audio_Callback is new
      SDL.Audio.Callback (User_Data     => Play_Info,
+                         Audio_Frames  => Samples,
                          User_Callback => My_Callback);
 
    ---------------------------------------------------------------------
