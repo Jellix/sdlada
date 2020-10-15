@@ -32,9 +32,125 @@ generic
    --  This shall be your actual callback function being called by the wrapper
    --  declared here.
    --  The Stream is declared 'in out', so that the same type of callback can be
-   --  used for both recording and playing callbacks, in practive it is either
+   --  used for both recording and playing callbacks, in practice it is either
    --  'in' or 'out', never both.
 procedure SDL.Audio.Callback (Data   : in System.Address;
                               Stream : in Buffer_Base;
                               Length : in Interfaces.C.int) with
   Convention => C;
+
+--
+--  # Overview
+--
+--    When you open an Audio device and you use the callback functionality
+--    (either for recording or playing back audio), the data structure passed to
+--    SDL contains a callback function. The above callback satisfies the type of
+--    that callback expected by SDL, but the drawback is, being a C interface,
+--    it is completely unaware of any types, so to use that you would need to
+--    convert pointers or addresses to and from your audio data.
+--
+--    This is error prone and unsafe in general. Instead you can use the generic
+--    package SDL.Audio.Frames. It can be instantiated for your specific needs
+--    of audio data types.
+--
+--  # How to use this package
+--
+--    The first step is to instantiate this package to define your audio data.
+--    Let's assume you want to play 16-bit unsigned stereo data, so you
+--    instantiate SDL.Audio.Frames like that:
+--
+--      with SDL.Audio.Frames;
+--
+--      type Sample is 0 .. 2 ** 16 - 1; --  A single sample.
+--
+--    Instantiate the proper type of Buffer_Overlays:
+--
+--      package Stereo_16_Bit is
+--        new SDL.Audio.Frames.Buffer_Overlays
+--          (Sample_Type  => Sample,
+--           Frame_Config => SDL.Audio.Frames.Buffer_Overlays.Config_Stereo);
+--
+--    (You can use your own index type for frames instead of the pre-defined
+--    Config_* types, if you wish to do so.)
+--
+--    At the moment, the resulting Frames type from your instantiation will
+--    always be in the form
+--
+--      type Frame is array (Frame_Config) of Sample;
+--
+--      type
+--        Frames is array (Natural range <>) of Frame;
+--
+--    That means, a single element of such an audio buffer holds all frames of
+--    the audio data where each frame holds the sample for each channel. That
+--    seems the most reasonable layout, but plan accordingly.
+--
+--    From now on, you can declare your own types audio buffers, but in most
+--    cases you won't even need to.
+--
+--  # Working with the call back
+--
+--    SDL provides the possibility to pass arbitrary user data to the callback
+--    This you can use to store data which you may need to access in the
+--    callback. For instance, if you are playing back audio, you may want to
+--    know where your source data is, so you can store an access to your audio
+--    data, instead of reverting back to use global variables.
+--
+--    If you are not passing anything, you can use a null record, i.e.
+--
+--      type My_Data is null record;
+--
+--    Now it's time define our callback subprogram. In our example, the
+--    signature would be
+--
+--    procedure Callback (User_Data    : in out My_Data;
+--                        Audio_Buffer : in out Stereo_16_Bit.Frames);
+--
+--    Now you can write your callback in the usual Ada way, treating
+--    Audio_Buffer as an unconstrained array containing your proper frame types.
+--    No need to hassle with Addresses, or C pointers.
+--
+--    Finally you can instantiate the callback that you need to pass to SDL:
+--
+--      procedure SDL_Callback is new
+--        SDL.Audio.Callback (User_Data     => My_Data,
+--                            Audio_Frames  => Stereo_16_Bit,
+--                            User_Callback => My_Callback);
+--
+--    All that is left to do is to pass the access to SDL_Callback in the
+--    structure SDL expects in SDL.Audio.Open.
+--
+--  # Putting it all together
+--
+--      -- 1) Define your audio data type:
+--
+--      type Sample is new Interfaces.Unsigned_16;
+--      type Channels is (Left, Right);
+--
+--      package Audio_Data is new
+--        SDL.Audio.Frames.Buffer_Overlays
+--          (Sample_Type  => Interfaces.Unsigned_16,
+--           Frame_Config => Channels);
+--
+--      -- 2) Define callback types:
+--
+--      type Callback_Data is
+--        record
+--           ...
+--        end record;
+--
+--      procedure My_Callback (Data  : in out Callback_Data;
+--                             Audio : in out Audio_Data.Frames);
+--
+--      -- 3) Instantiate the callback procedure to be passed to SDL:
+--
+--      procedure SDL_Callback is new
+--        SDL.Audio.Callback (User_Data     => Callback_Data,
+--                            Audio_Frames  => Audio_Data,
+--                            User_Callback => My_Callback);
+--
+--    The instantiated audio callback will take care of converting the data
+--    passed from SDL to your specific instance. Also, this conversion is rather
+--    efficient, no copies or such are involved. It is just a little bit of
+--    magic behind the scenes.
+--
