@@ -9,13 +9,16 @@ package Play_Callbacks is
    use SDL.Audio;
 
    type User_Data is null record;
+   --  No user data required, the callback is generating the audio data on the
+   --  fly.
 
    type Sample_Type is range -2**15 .. 2**15 - 1
      with Size => 16;
 
-   package Samples is
-      new SDL.Audio.Frames.Buffer_Overlays (Sample_Type  => Sample_Type,
-                                            Frame_Config => SDL.Audio.Frames.Config_Stereo);
+   package Samples is new
+     SDL.Audio.Frames.Buffer_Overlays (Sample_Type  => Sample_Type,
+                                       Frame_Config => SDL.Audio.Frames.Config_Stereo);
+
    procedure Player (Userdata  : in out User_Data;
                      Audio_Buf : in out Samples.Frames);
 
