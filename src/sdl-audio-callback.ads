@@ -53,17 +53,17 @@ procedure SDL.Audio.Callback (Data   : in System.Address;
 --    package SDL.Audio.Frames. It can be instantiated for your specific needs
 --    of audio data types.
 --
---  # How to use this package
+--  # How to use the callback
 --
---    The first step is to instantiate this package to define your audio data.
---    Let's assume you want to play 16-bit unsigned stereo data, so you
---    instantiate SDL.Audio.Frames like that:
+--    The first step is to instantiate the nested generic package
+--    Buffer_Overlays from SDL.Audio.Frames to define your audio data.
+--
+--    Let's assume you want to play 16-bit unsigned stereo data, you can
+--    instantiate SDL.Audio.Frames.Buffer_Overlays like that:
 --
 --      with SDL.Audio.Frames;
 --
 --      type Sample is 0 .. 2 ** 16 - 1; --  A single sample.
---
---    Instantiate the proper type of Buffer_Overlays:
 --
 --      package Stereo_16_Bit is
 --        new SDL.Audio.Frames.Buffer_Overlays
@@ -82,10 +82,10 @@ procedure SDL.Audio.Callback (Data   : in System.Address;
 --        Frames is array (Natural range <>) of Frame;
 --
 --    That means, a single element of such an audio buffer holds all frames of
---    the audio data where each frame holds the sample for each channel. That
+--    the audio data where each frame holds a sample for each channel. That
 --    seems the most reasonable layout, but plan accordingly.
 --
---    From now on, you can declare your own types audio buffers, but in most
+--    From now on, you can declare your own typed audio buffers, but in most
 --    cases you won't even need to.
 --
 --  # Working with the call back

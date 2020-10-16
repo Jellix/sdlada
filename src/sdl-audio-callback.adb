@@ -43,9 +43,9 @@ procedure SDL.Audio.Callback (Data   : in System.Address;
    --  The instance of Audio_Frames gives us all the information we need about
    --  the individual size of audio frames, so we can map them directly.
    Ada_Audio_Frames : Audio_Frames.Frames (1 .. Natural (Length) / Frame_Size) with
-     Import => True,
-     Convention => Ada;
-   for Ada_Audio_Frames'Address use System.Address (Stream);
+     Import     => True, -- Avoid default initialization.
+     Convention => Ada,
+     Address    => System.Address (Stream);
 begin
    --  Call the actual user callback, but with a more type safe interface.
    User_Callback (Data   => Ada_User_Data,

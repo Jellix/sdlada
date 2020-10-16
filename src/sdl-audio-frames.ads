@@ -57,9 +57,11 @@ package SDL.Audio.Frames is
       --  to address a frame inside a buffer. Instead, 0 is used to communicate
       --  an invalid index, i.e. an empty buffer.
 
-      type Frame_Type is array (Frame_Config) of Sample_Type;
+      type Frame_Type is array (Frame_Config) of Sample_Type
+        with Convention => C; --  Touched by SDL, rather specify C convention.
 
-      type Frames is array (Frame_Index range <>) of Frame_Type;
+      type Frames is array (Frame_Index range <>) of Frame_Type
+        with Convention => C; --  Touched by SDL, rather specify C convention.
       --  This is the type of array that holds your audio data and is mapped
       --  on top of the buffer overlay type. See SDL.Audio.Callback for an
       --  usage example.
