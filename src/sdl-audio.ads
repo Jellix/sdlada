@@ -121,7 +121,7 @@ package SDL.Audio is
 
    --  Define a convenience constant for when we don't pass userdata through the
    --  callbacks.
-   No_User_Data : constant System.Address := System.Null_Address;
+   No_User_Data : constant System.Address;
 
    package Internal is
       --  This callback should never be directly used by the user of the
@@ -271,6 +271,8 @@ package SDL.Audio is
    procedure Close (Device : in Device_Id);
 
 private
+
+   No_User_Data : constant System.Address := System.Null_Address;
 
    type Buffer_Type is
       record
